@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMRW LOG DRIVE - 2026 Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon-blue: #00f2ff; --deep-space: #020617; --panel-bg: rgba(15, 23, 42, 0.9); }
+        body {
+            background: radial-gradient(circle at 50% 0%, #0f172a 0%, var(--deep-space) 100%);
+            color: #e0faff; font-family: 'Noto Sans JP', sans-serif;
+            min-height: 100vh; margin: 0; padding-bottom: 300px;
+        }
+        .tomorrow-font { font-family: 'Orbitron', sans-serif; }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(15px); border: 1px solid rgba(0, 242, 255, 0.15); }
+        .neon-border { border: 1px solid var(--neon-blue); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+        .neon-text { text-shadow: 0 0 10px var(--neon-blue); }
+        
+        /* タイムライン：最大5つ分程度で固定表示 */
+        #timeline-container { height: 230px; overflow-y: auto; scrollbar-width: none; }
+        #timeline-container::-webkit-scrollbar { display: none; }
+
+        .category-icon { width: 28px; height: 28px; margin-bottom: 6px; stroke: var(--neon-blue); fill: none; stroke-width: 1.5; }
+        .grid-btn { aspect-ratio: 1 / 1; font-size: 0.65rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        
+        @keyframes pulse-slow { 0%, 100% { border-color: rgba(0,242,255,0.2); } 50% { border-color: rgba(0,242,255,1); } }
+        .recording-active { animation: pulse-slow 2s infinite; border-width: 2px; }
+    </style>
+</head>
+<body>
+
+    <header class="sticky top-0 z-40 p-4 glass-panel flex justify-between items-center border-b border-cyan-500/30">
+        <div>
+            <h1 class="tomorrow-font text-lg neon-text tracking-widest font-bold">TMRW LOG</h1>
+            <p id="current-park-display" class="text-[9px] text-cyan-500 tomorrow-font">SECTOR: TDL</p>
+        </div>
+        <div class="flex gap-1">
+            <button onclick="resetAllLogs()" class="px-2 py-2 rounded-lg border border-red-900 bg-red-950/40 text-[9px] tomorrow-font text-red-400">RESET</button>
+            <button onclick="openExportModal()" class="px-2 py-2 rounded-lg border border-cyan-700 bg-cyan-950/40 text-[9px] tomorrow-font">EXPORT</button>
+            <button id="park-status-btn" onclick="toggleParkInOut()" class="px-3 py-2 rounded-lg border border-cyan-400 text-[10px] font-bold tomorrow-font bg-cyan-900/50">IN PARK</button>
+        </div>
+    </header>
+
+    <div id="recording-overlay" class="fixed top-20 left-4 right-4 z-50 hidden">
+        <div class="glass-panel neon-border rounded-2xl p-4 flex justify-between items-center recording-active">
+            <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
+                <div class="max-w-[150px]">
+                    <h3 id="active-name" class="font-bold text-sm truncate">---</h3>
+                    <p id="active-timer" class="tomorrow-font text-lg text-cyan-300">00:00:00</p>
+                </div>
+            </div>
+            <button onclick="stopRecording()" class="bg-cyan-500 text-black font-bold py-3 px-6 rounded-xl shadow-[0_0_15px_rgba(0,242,255,0.5)]">STOP</button>
+        </div>
+    </div>
+
+    <main class="p-4 space-y-4">
+        <div class="flex p-1 rounded-xl bg-slate-900/80 border border-slate-800">
+            <button onclick="switchPark('TDL')" id="btn-TDL" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-black">TOKYO DISNEY LAND</button>
+            <button onclick="switchPark('TDS')" id="btn-TDS" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-400">TOKYO DISNEY SEA</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+            <button onclick="openCategory('attraction')" class="glass-panel p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                <svg class="category-icon"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                <span class="tomorrow-font text-[8px] text-cyan-400">ATTRACTION</span>
+            </button>
+            <button onclick="openCategory('show')" class="glass-panel p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                <svg class="category-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                <span class="tomorrow-font text-[8px] text-cyan-400">SHOW</span>
+            </button>
+            <button onclick="openCategory('greeting')" class="glass-panel p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                <svg class="category-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path></svg>
+                <span class="tomorrow-font text-[8px] text-cyan-400">GREETING</span>
+            </button>
+            <button onclick="openCategory('food')" class="glass-panel p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                <svg class="category-icon"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path></svg>
+                <span class="tomorrow-font text-[8px] text-cyan-400">FOOD / WAGON</span>
+            </button>
+            <button onclick="openCategory('shop')" class="glass-panel p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                <svg class="category-icon"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3 6h18"></path></svg>
+                <span class="tomorrow-font text-[8px] text-cyan-400">SHOP</span>
+            </button>
+            <button onclick="openCategory('rest')" class="glass-panel p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                <svg class="category-icon"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
+                <span class="tomorrow-font text-[8px] text-cyan-400">REST</span>
+            </button>
+        </div>
+    </main>
+
+    <div class="fixed bottom-0 left-0 right-0 glass-panel border-t border-cyan-500/40 p-5 z-30 rounded-t-[2rem]">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="tomorrow-font text-[9px] text-cyan-400 tracking-[0.3em] font-bold">MISSION LOG TIMELINE</h2>
+            <span id="log-count" class="text-[9px] text-slate-500 tomorrow-font">0 RECORDS</span>
+        </div>
+        <div id="timeline-container">
+            <div id="timeline-list" class="space-y-2">
+                <div class="text-center py-10">
+                    <p class="text-[9px] text-slate-600 tomorrow-font tracking-widest italic">Ready for log...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] hidden flex-col items-center justify-end">
+        <div class="absolute inset-0" onclick="closeModal()"></div>
+        <div id="modal-container" class="glass-panel neon-border w-full rounded-t-[2.5rem] p-6 relative z-[110] max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modal-title" class="tomorrow-font text-cyan-400 font-bold tracking-widest text-sm">SYSTEM INTERFACE</h2>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-lg">×</button>
+            </div>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- データセット（TDL全施設） ---
+        const masterData = [
+            // Attractions
+            { park: 'TDL', type: 'attraction', area: 'ワールドバザール', name: 'オムニバス', lat: 35.632, lng: 139.881 },
+            { park: 'TDL', type: 'attraction', area: 'ワールドバザール', name: 'ペニーアーケード', lat: 35.632, lng: 139.882 },
+            { park: 'TDL', type: 'attraction', area: 'アドベンチャーランド', name: 'リバー鉄道', lat: 35.631, lng: 139.879 },
+            { park: 'TDL', type: 'attraction', area: 'アドベンチャーランド', name: 'ジャングルクルーズ', lat: 35.631, lng: 139.879 },
+            { park: 'TDL', type: 'attraction', area: 'アドベンチャーランド', name: 'カリブの海賊', lat: 35.632, lng: 139.879 },
+            { park: 'TDL', type: 'attraction', area: 'アドベンチャーランド', name: 'ツリーハウス', lat: 35.631, lng: 139.880 },
+            { park: 'TDL', type: 'attraction', area: 'アドベンチャーランド', name: 'チキルーム', lat: 35.631, lng: 139.880 },
+            { park: 'TDL', type: 'attraction', area: 'ウエスタンランド', name: 'シューティング', lat: 35.631, lng: 139.877 },
+            { park: 'TDL', type: 'attraction', area: 'ウエスタンランド', name: 'カントリーベア', lat: 35.631, lng: 139.878 },
+            { park: 'TDL', type: 'attraction', area: 'ウエスタンランド', name: 'マークトウェイン', lat: 35.631, lng: 139.876 },
+            { park: 'TDL', type: 'attraction', area: 'ウエスタンランド', name: 'トムソーヤ島', lat: 35.632, lng: 139.876 },
+            { park: 'TDL', type: 'attraction', area: 'ウエスタンランド', name: 'ビッグサンダー', lat: 35.631, lng: 139.878 },
+            { park: 'TDL', type: 'attraction', area: 'クリッターカントリー', name: 'スプラッシュ', lat: 35.633, lng: 139.878 },
+            { park: 'TDL', type: 'attraction', area: 'クリッターカントリー', name: 'カヌー探険', lat: 35.633, lng: 139.877 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'ティーパーティー', lat: 35.633, lng: 139.881 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'スモールワールド', lat: 35.633, lng: 139.882 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'キャッスルカルーセル', lat: 35.632, lng: 139.881 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: '白雪姫', lat: 35.632, lng: 139.881 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'フェアリーテイル', lat: 35.632, lng: 139.882 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: '空飛ぶダンボ', lat: 35.632, lng: 139.881 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: '美女と野獣', lat: 35.632, lng: 139.883 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'ピーターパン', lat: 35.632, lng: 139.880 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'ピノキオ', lat: 35.632, lng: 139.881 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'ハニーハント', lat: 35.632, lng: 139.882 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'ホーンテッドM', lat: 35.632, lng: 139.880 },
+            { park: 'TDL', type: 'attraction', area: 'ファンタジーランド', name: 'フィルハーマジック', lat: 35.632, lng: 139.881 },
+            { park: 'TDL', type: 'attraction', area: 'トゥーンタウン', name: 'ガジェット', lat: 35.634, lng: 139.883 },
+            { park: 'TDL', type: 'attraction', area: 'トゥーンタウン', name: 'グーフィー', lat: 35.633, lng: 139.883 },
+            { park: 'TDL', type: 'attraction', area: 'トゥーンタウン', name: 'チップデール', lat: 35.633, lng: 139.883 },
+            { park: 'TDL', type: 'attraction', area: 'トゥーンタウン', name: 'ドナルドボート', lat: 35.633, lng: 139.883 },
+            { park: 'TDL', type: 'attraction', area: 'トゥーンタウン', name: 'ミニーの家', lat: 35.633, lng: 139.884 },
+            { park: 'TDL', type: 'attraction', area: 'トゥーンタウン', name: 'ロジャーラビット', lat: 35.633, lng: 139.884 },
+            { park: 'TDL', type: 'attraction', area: 'トゥモローランド', name: 'スター・ツアーズ', lat: 35.633, lng: 139.884 },
+            { park: 'TDL', type: 'attraction', area: 'トゥモローランド', name: 'スティッチ', lat: 35.632, lng: 139.884 },
+            { park: 'TDL', type: 'attraction', area: 'トゥモローランド', name: 'ベイマックス', lat: 35.631, lng: 139.884 },
+            { park: 'TDL', type: 'attraction', area: 'トゥモローランド', name: 'モンスターズ', lat: 35.633, lng: 139.885 },
+
+            // Shows
+            { park: 'TDL', type: 'show', area: 'パレード', name: 'ハーモニー・イン・カラー' },
+            { park: 'TDL', type: 'show', area: 'パレード', name: 'エレクトリカルパレード' },
+            { park: 'TDL', type: 'show', area: 'キャッスル', name: 'Reach for the Stars' },
+            { park: 'TDL', type: 'show', area: 'ステージ', name: 'ジャンボリミッキー' },
+            { park: 'TDL', type: 'show', area: 'ステージ', name: 'マジカルミュージック' },
+            { park: 'TDL', type: 'show', area: 'ステージ', name: 'クラブマウスビート' },
+
+            // Greeting
+            { park: 'TDL', type: 'greeting', area: 'エントランス', name: 'メインストリートハウス前' },
+            { park: 'TDL', type: 'greeting', area: 'ウッドチャック', name: 'ドナルド/デイジー' },
+            { park: 'TDL', type: 'greeting', area: 'トゥーン', name: 'ミッキーの家' },
+            { park: 'TDL', type: 'greeting', area: 'トゥーン', name: 'ミニーのスタジオ' },
+
+            // Food (Restaurant / Counter)
+            { park: 'TDL', type: 'food', area: 'レストラン', name: 'イーストサイド' },
+            { park: 'TDL', type: 'food', area: 'レストラン', name: 'センターストリート' },
+            { park: 'TDL', type: 'food', area: 'レストラン', name: 'れすとらん北齋' },
+            { park: 'TDL', type: 'food', area: 'レストラン', name: 'ブルーバイユー' },
+            { park: 'TDL', type: 'food', area: 'ワゴン/小規模', name: 'アイスクリームコーン' },
+            { park: 'TDL', type: 'food', area: 'ワゴン/小規模', name: 'ティポトルタ' },
+            { park: 'TDL', type: 'food', area: 'ワゴン/小規模', name: 'チュロス' },
+            { park: 'TDL', type: 'food', area: 'ワゴン/小規模', name: 'ポップコーンワゴン' },
+
+            // Shop
+            { park: 'TDL', type: 'shop', area: 'ワールドバザール', name: 'コンフェクショナリー' },
+            { park: 'TDL', type: 'shop', area: 'ワールドバザール', name: 'エンポーリアム' },
+            { park: 'TDL', type: 'shop', area: 'トゥーン', name: 'ギャグファクトリー' },
+            { park: 'TDL', type: 'shop', area: 'トゥモロー', name: 'プラネットM' },
+
+            // Rest
+            { park: 'TDL', type: 'rest', area: '休憩', name: 'ベンチ' },
+            { park: 'TDL', type: 'rest', area: '休憩', name: 'ピクニックエリア' },
+            { park: 'TDL', type: 'rest', area: '休憩', name: 'パレード待ち' }
+        ];
+
+        let currentPark = 'TDL';
+        let currentRecord = null;
+        let timerId = null;
+        let history = [];
+        let isInPark = false;
+        let userPos = { lat: 35.632, lng: 139.884 };
+
+        // GPS監視
+        navigator.geolocation.watchPosition(p => {
+            userPos.lat = p.coords.latitude;
+            userPos.lng = p.coords.longitude;
+            if (currentRecord?.lat) {
+                if (getDist(userPos.lat, userPos.lng, currentRecord.lat, currentRecord.lng) > 200) stopRecording();
+            }
+        });
+
+        function switchPark(park) {
+            currentPark = park;
+            const isTDL = park === 'TDL';
+            document.getElementById('btn-TDL').className = `flex-1 py-2 rounded-lg text-xs font-bold transition-all ${isTDL?'bg-cyan-500 text-black':'text-slate-400'}`;
+            document.getElementById('btn-TDS').className = `flex-1 py-2 rounded-lg text-xs font-bold transition-all ${!isTDL?'bg-cyan-500 text-black':'text-slate-400'}`;
+            document.getElementById('current-park-display').innerText = `SECTOR: ${park}`;
+        }
+
+        function toggleParkInOut() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            isInPark = !isInPark;
+            const btn = document.getElementById('park-status-btn');
+            
+            if (isInPark) {
+                btn.innerText = "OUT PARK";
+                btn.classList.add('bg-red-900/40', 'border-red-500', 'text-red-400');
+                btn.classList.remove('bg-cyan-900/50', 'border-cyan-400', 'text-cyan-400');
+                addTimeline(`[LOG] IN SECTOR: ${currentPark}`, timeStr, "---");
+            } else {
+                btn.innerText = "IN PARK";
+                btn.classList.remove('bg-red-900/40', 'border-red-500', 'text-red-400');
+                btn.classList.add('bg-cyan-900/50', 'border-cyan-400', 'text-cyan-400');
+                addTimeline(`[LOG] EXIT SECTOR: ${currentPark}`, timeStr, "---");
+            }
+        }
+
+        function openCategory(type) {
+            const content = document.getElementById('modal-content');
+            document.getElementById('modal-title').innerText = `SELECT ${type.toUpperCase()}`;
+            content.innerHTML = '';
+
+            // GPS提案
+            const suggestions = masterData
+                .filter(d => d.park === currentPark && d.type === type && d.lat)
+                .map(d => ({ ...d, dist: getDist(userPos.lat, userPos.lng, d.lat, d.lng) }))
+                .sort((a, b) => a.dist - b.dist).slice(0, 3);
+
+            if(suggestions.length > 0) {
+                const head = document.createElement('div');
+                head.className = "mb-4";
+                head.innerHTML = `<p class="tomorrow-font text-[9px] text-cyan-500 mb-2 tracking-widest">NEARBY SUGGESTION</p>`;
+                suggestions.forEach(s => {
+                    const b = document.createElement('button');
+                    b.className = "w-full p-3 glass-panel border-l-4 border-l-cyan-400 rounded-r-xl mb-2 text-left flex justify-between items-center";
+                    b.innerHTML = `<div><span class="font-bold text-[11px]">${s.name}</span><p class="text-[8px] opacity-50 tomorrow-font">${s.area}</p></div><span class="tomorrow-font text-[9px] text-cyan-400">${Math.round(s.dist)}m</span>`;
+                    b.onclick = () => { startRecording(s); closeModal(); };
+                    head.appendChild(b);
+                });
+                content.appendChild(head);
+            }
+
+            // 全リスト
+            const filtered = masterData.filter(d => d.park === currentPark && d.type === type);
+            const groups = filtered.reduce((a, o) => { (a[o.area] = a[o.area] || []).push(o); return a; }, {});
+
+            for (const area in groups) {
+                const areaDiv = document.createElement('div');
+                areaDiv.className = "mb-4";
+                areaDiv.innerHTML = `<h3 class="text-[9px] font-bold text-slate-500 mb-2 tomorrow-font tracking-widest">>>> ${area}</h3>`;
+                const grid = document.createElement('div');
+                grid.className = "grid grid-cols-4 gap-1.5";
+                groups[area].forEach(spot => {
+                    const btn = document.createElement('button');
+                    btn.className = "glass-panel rounded border border-slate-800 text-[8px] p-1.5 aspect-square flex items-center justify-center leading-tight";
+                    btn.innerText = spot.name;
+                    btn.onclick = () => { startRecording(spot); closeModal(); };
+                    grid.appendChild(btn);
+                });
+                areaDiv.appendChild(grid);
+                content.appendChild(areaDiv);
+            }
+
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById('modal-overlay').classList.add('flex');
+        }
+
+        function startRecording(spot) {
+            if (currentRecord) stopRecording();
+            currentRecord = { ...spot, startTime: new Date() };
+            document.getElementById('active-name').innerText = spot.name;
+            document.getElementById('recording-overlay').classList.remove('hidden');
+            timerId = setInterval(updateActiveTimer, 1000);
+        }
+
+        function updateActiveTimer() {
+            const diff = Math.floor((new Date() - currentRecord.startTime) / 1000);
+            const h = String(Math.floor(diff/3600)).padStart(2, '0');
+            const m = String(Math.floor((diff%3600)/60)).padStart(2, '0');
+            const s = String(diff%60).padStart(2, '0');
+            document.getElementById('active-timer').innerText = `${h}:${m}:${s}`;
+        }
+
+        function stopRecording() {
+            if (!currentRecord) return;
+            const end = new Date();
+            const durSec = Math.floor((end - currentRecord.startTime) / 1000);
+            const startStr = currentRecord.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const durStr = `${Math.floor(durSec/60)}m ${durSec%60}s`;
+            addTimeline(currentRecord.name, startStr, durStr);
+            clearInterval(timerId);
+            currentRecord = null;
+            document.getElementById('recording-overlay').classList.add('hidden');
+        }
+
+        function addTimeline(name, start, duration) {
+            history.push({ name, start, duration });
+            renderTimeline();
+        }
+
+        function renderTimeline() {
+            const list = document.getElementById('timeline-list');
+            list.innerHTML = '';
+            if (history.length === 0) {
+                list.innerHTML = '<div class="text-center py-10"><p class="text-[9px] text-slate-600 tomorrow-font tracking-widest italic">No records.</p></div>';
+            } else {
+                history.forEach((h, index) => {
+                    const div = document.createElement('div');
+                    div.className = "flex justify-between items-center glass-panel p-2.5 rounded-xl border-l-2 border-cyan-400";
+                    div.innerHTML = `
+                        <div class="flex-1">
+                            <p class="text-[10px] font-bold">${h.name}</p>
+                            <p class="tomorrow-font text-[8px] text-slate-500">T-MARK: ${h.start}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <p class="tomorrow-font text-[9px] text-cyan-400 font-bold">${h.duration}</p>
+                            <button onclick="deleteLog(${index})" class="w-6 h-6 rounded bg-red-950/30 text-red-500 text-[10px] border border-red-900/50 flex items-center justify-center">×</button>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+            document.getElementById('log-count').innerText = `${history.length} RECORDS`;
+            const container = document.getElementById('timeline-container');
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        }
+
+        function deleteLog(index) {
+            if(confirm("このログを削除しますか？")) {
+                history.splice(index, 1);
+                renderTimeline();
+            }
+        }
+
+        function resetAllLogs() {
+            if(confirm("すべての記録をリセットします。よろしいですか？")) {
+                history = [];
+                renderTimeline();
+                alert("Mission Clear.");
+            }
+        }
+
+        function openExportModal() {
+            const content = document.getElementById('modal-content');
+            document.getElementById('modal-title').innerText = "DATA EXPORT";
+            let logText = history.map(h => `${h.start} | ${h.name} (${h.duration})`).join('\n');
+            if(history.length === 0) logText = "No mission logs.";
+            content.innerHTML = `
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-4">
+                    <pre id="raw-log" class="text-[9px] font-mono leading-relaxed whitespace-pre-wrap text-cyan-100">${logText}</pre>
+                </div>
+                <button onclick="copyLog()" class="w-full bg-cyan-500 text-black font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-xs">COPY LOG</button>
+            `;
+            document.getElementById('modal-overlay').classList.remove('hidden');
+        }
+
+        async function copyLog() {
+            const text = document.getElementById('raw-log').innerText;
+            await navigator.clipboard.writeText(text);
+            alert("Copied to clipboard!");
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+        function getDist(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const dLat = (lat2-lat1)*Math.PI/180;
+            const dLng = (lng2-lng1)*Math.PI/180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+    </script>
+</body>
+</html>
