@@ -657,12 +657,13 @@
                     div.innerHTML = `
                         <div class="flex-1 pr-2">
                             <p class="text-[8px] font-bold ${titleColor}">${h.name}</p>
-                            <p class="tomorrow-font text-[7px] text-slate-400 uppercase mt-1 cursor-pointer" onclick="openEditTimeModal(${index})">
-                                T-MARK: <span class="text-cyan-300 underline underline-offset-2">${h.start}</span>
-                                ${isTimeRange ? ` 〜 <span class="text-cyan-300 underline underline-offset-2">${h.end}</span>` : ''}
-                                <span class="ml-1 text-cyan-600 text-[10px]">✎</span>
-                            </p>
-                            <input type="text" placeholder="Add memo..." value="${h.memo}" onchange="updateMemo(${index}, this.value)" class="bg-transparent border-b border-slate-700 text-[7px] tomorrow-font tracking-widest text-cyan-100 w-full mt-1.5 pb-0.5 outline-none focus:border-cyan-400 placeholder-slate-600">
+                          <p class="tomorrow-font text-base text-slate-400 uppercase mt-1 cursor-pointer" onclick="openEditTimeModal(${index})">
+    T-MARK: <span class="text-cyan-300 underline underline-offset-2">${h.start}</span>
+    ${isTimeRange ? ` 〜 <span class="text-cyan-300 underline underline-offset-2">${h.end}</span>` : ''}
+    <span class="ml-1 text-cyan-600 text-sm">✎</span>
+</p>
+<input type="text" placeholder="Add memo..." value="${h.memo}" onchange="updateMemo(${index}, this.value)" class="bg-transparent border-b border-slate-700 tomorrow-font tracking-widest text-cyan-100 w-full mt-1.5 pb-0.5 outline-none focus:border-cyan-400 placeholder-slate-600" style="font-size: 10px !important;">
+
                         </div>
                         <div class="flex flex-col items-end gap-1 mt-0.5">
                             <button onclick="deleteLog(${index})" class="w-6 h-6 rounded bg-red-950/30 text-red-500 text-xs flex items-center justify-center">×</button>
