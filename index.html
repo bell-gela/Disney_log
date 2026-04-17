@@ -99,7 +99,7 @@
                 <button onclick="switchPark('TDS')" id="btn-TDS" class="flex-1 py-3 rounded-lg text-xs font-bold transition-all text-slate-400 uppercase tracking-widest">Sea</button>
             </div>
             <div class="cost-display-bar py-3 relative overflow-hidden" onclick="openCostHistory()">
-                <div id="budget-progress" class="absolute left-0 top-0 bottom-0 bg-cyan-900/30 w-0 transition-all duration-500"></div>
+                <div id="budget-progress" class="absolute left-0 top-0 bottom-0 bg-cyan-500/30 w-0 transition-all duration-500"></div>
                 <div class="relative z-10 flex justify-between w-full items-center px-2">
                     <div class="flex flex-col">
                         <span class="tomorrow-font text-[10px] text-cyan-400 tracking-[0.2em] font-bold" id="budget-label">BUDGET: ¥30,000</span>
@@ -423,15 +423,12 @@
         let history = [];
         let costHistory = [];
         let totalCost = 0;
-        let budget = 30000; // 予算上限デフォルト値
+        let budget = 30000;
         let isInPark = false;
         let sortableTimeline = null;
 
-        // 触感フィードバック
         function haptic(pattern = 15) {
-            if (navigator.vibrate) {
-                navigator.vibrate(pattern);
-            }
+            if (navigator.vibrate) navigator.vibrate(pattern);
         }
 
         function saveData() {
@@ -439,7 +436,7 @@
             localStorage.setItem('extremeDisneyData', JSON.stringify(data));
         }
 
-        // コスト表示と予算ゲージの更新関数
+        // コスト表示と予算ゲージの更新関数（背景のコントラストをハッキリと）
         function updateCostDisplay() {
             const ratio = budget > 0 ? totalCost / budget : 0;
             const progressEl = document.getElementById('budget-progress');
@@ -453,15 +450,18 @@
             progressEl.style.width = `${percent}%`;
             
             if (ratio >= 1.0) {
-                progressEl.className = "absolute left-0 top-0 bottom-0 bg-red-900/50 w-full transition-all duration-500";
+                // 赤色：100%超過
+                progressEl.className = "absolute left-0 top-0 bottom-0 bg-red-600/50 w-full transition-all duration-500";
                 valueEl.className = "tomorrow-font text-xl text-red-400 font-bold text-shadow-red animate-pulse";
                 labelEl.className = "tomorrow-font text-[10px] text-red-500 tracking-[0.2em] font-bold";
             } else if (ratio >= 0.8) {
-                progressEl.className = "absolute left-0 top-0 bottom-0 bg-yellow-900/50 transition-all duration-500";
+                // 黄色：80%以上
+                progressEl.className = "absolute left-0 top-0 bottom-0 bg-yellow-500/40 transition-all duration-500";
                 valueEl.className = "tomorrow-font text-xl text-yellow-400 font-bold text-shadow-yellow";
                 labelEl.className = "tomorrow-font text-[10px] text-yellow-500 tracking-[0.2em] font-bold";
             } else {
-                progressEl.className = "absolute left-0 top-0 bottom-0 bg-cyan-900/30 transition-all duration-500";
+                // シアン：通常（背景が黒寄りなので明るいトーンを使用）
+                progressEl.className = "absolute left-0 top-0 bottom-0 bg-cyan-500/40 transition-all duration-500";
                 valueEl.className = "tomorrow-font text-xl text-cyan-300 font-bold text-shadow-cyan";
                 labelEl.className = "tomorrow-font text-[10px] text-cyan-400 tracking-[0.2em] font-bold";
             }
@@ -757,24 +757,39 @@
             saveData();
         }
 
+        // --- 編集機能 (コスト修正対応版) ---
         function openEditTimeModal(index) {
             haptic(10);
             const log = history[index];
             const content = document.getElementById('modal-content');
-            document.getElementById('modal-title').innerText = "EDIT LOG TIME";
+            document.getElementById('modal-title').innerText = "EDIT LOG";
             
-            let html = `
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-[10px] text-cyan-400 uppercase">Start Time</label>
-                        <input id="edit-start" type="time" value="${log.start}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white">
-                    </div>`;
+            let html = `<div class="space-y-4">`;
+            
+            html += `
+                <div>
+                    <label class="text-[10px] text-cyan-400 uppercase">Start Time</label>
+                    <input id="edit-start" type="time" value="${log.start}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white">
+                </div>`;
             
             if (log.status === 'finished' || log.status === 'active') {
                 html += `
                     <div>
                         <label class="text-[10px] text-cyan-400 uppercase">End Time</label>
                         <input id="edit-end" type="time" value="${log.end === '---' ? '' : log.end}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white">
+                    </div>`;
+            }
+            
+            let currentCost = '';
+            if (log.duration.includes('¥')) {
+                currentCost = log.duration.split('¥')[1].replace(/[^0-9]/g, '');
+            }
+            
+            if (log.duration.includes('¥') || log.type === 'shop' || log.type === 'food' || log.status === 'cost') {
+                html += `
+                    <div>
+                        <label class="text-[10px] text-cyan-400 uppercase">Cost (¥)</label>
+                        <input id="edit-cost" type="number" value="${currentCost}" placeholder="0" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white tracking-widest">
                     </div>`;
             }
             
@@ -795,13 +810,7 @@
             
             if(newStart) log.start = newStart;
 
-            if (log.status === 'cost') {
-                if (log.duration.startsWith('¥')) {
-                    const rawName = log.name.replace('購入: ', '');
-                    const costObj = costHistory.find(c => c.name === rawName && c.time === oldStart);
-                    if(costObj) costObj.time = newStart;
-                }
-            } else if (log.status === 'active') {
+            if (log.status === 'active') {
                 const [hours, minutes] = newStart.split(':');
                 const now = new Date();
                 now.setHours(hours, minutes, 0, 0);
@@ -828,7 +837,42 @@
                     log.duration = `${Math.floor(diff/60)}m ${diff%60}s${costPart}`;
                 }
             }
+
+            const costInputEl = document.getElementById('edit-cost');
+            if (costInputEl) {
+                const newCost = parseInt(costInputEl.value) || 0;
+                let oldCost = 0;
+                if (log.duration.includes('¥')) {
+                    oldCost = parseInt(log.duration.split('¥')[1].replace(/[^0-9]/g, '')) || 0;
+                }
+
+                if (oldCost !== newCost || (oldCost > 0 && newStart && newStart !== oldStart)) {
+                    let searchName = log.name.replace('購入: ', '');
+                    
+                    if (oldCost > 0) {
+                        let costIndex = costHistory.findIndex(c => c.time === oldStart && c.amount === oldCost);
+                        if (costIndex !== -1) {
+                            costHistory.splice(costIndex, 1);
+                            totalCost -= oldCost;
+                        }
+                    }
+                    if (newCost > 0) {
+                        costHistory.push({ name: searchName, amount: newCost, time: newStart || log.start });
+                        totalCost += newCost;
+                    }
+                    if (log.status === 'active' && currentRecord && currentRecord.tlRef.id === log.id) {
+                        currentRecord.savedCost = newCost > 0 ? newCost : null;
+                    }
+                    if (log.status === 'cost') {
+                        log.duration = newCost > 0 ? `¥${newCost}` : ''; 
+                    } else {
+                        let timePart = log.duration.split(' / ¥')[0];
+                        log.duration = newCost > 0 ? `${timePart} / ¥${newCost}` : timePart;
+                    }
+                }
+            }
             
+            updateCostDisplay();
             saveData();
             renderTimeline(false);
             closeModal();
@@ -872,6 +916,7 @@
                 renderTimeline(false); 
             } 
         }
+        
         function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
         function openCalculator() {
@@ -921,6 +966,7 @@
             budget = newBudget;
             saveData();
             updateCostDisplay();
+            closeModal(); // SETボタン押下時にポップアップを閉じる
         }
 
         function openCostHistory() {
@@ -1078,7 +1124,7 @@
         }
 
         window.onload = () => {
-            updateCostDisplay(); // 初期表示用
+            updateCostDisplay(); 
             const savedData = localStorage.getItem('extremeDisneyData');
             if(savedData) {
                 try {
