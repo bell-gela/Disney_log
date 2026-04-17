@@ -769,10 +769,10 @@
             document.getElementById('modal-overlay').classList.remove('hidden');
             document.getElementById('modal-overlay').classList.add('flex');
             
-            // iPhoneでのオートフォーカスとキーボード立ち上げ
-            setTimeout(() => {
-                document.getElementById('calc-name').focus();
-            }, 100);
+            // iOS Safari対策：setTimeoutを外し、タップイベント内で即座に同期的にfocus()を実行
+            document.getElementById('calc-name').focus();
+        }
+
         }
 
         function addCostFromCalc() {
