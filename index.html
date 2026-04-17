@@ -48,7 +48,7 @@
         }
 
         /* iOSの入力ズーム対策 */
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], input[type="time"], textarea {
             font-size: 16px !important;
         }
 
@@ -65,21 +65,28 @@
         </div>
         <div class="flex gap-1">
             <button onclick="resetAllLogs()" class="px-2 py-2 rounded-lg border border-red-900 bg-red-950/40 text-[8px] tomorrow-font text-red-400 uppercase">Reset</button>
-            <button onclick="openExportModal()" class="px-2 py-2 rounded-lg border border-cyan-700 bg-cyan-950/40 text-[8px] tomorrow-font uppercase">Export</button>
+            <button onclick="openDataModal()" class="px-2 py-2 rounded-lg border border-cyan-700 bg-cyan-950/40 text-[8px] tomorrow-font uppercase">Data</button>
             <button id="park-status-btn" onclick="toggleParkInOut()" class="px-3 py-2 rounded-lg border border-cyan-400 text-[9px] font-bold tomorrow-font bg-cyan-900/50 uppercase">In Park</button>
         </div>
     </header>
 
-    <div id="recording-overlay" class="mx-4 mt-2 hidden">
-        <div class="glass-panel neon-border rounded-2xl p-4 flex justify-between items-center recording-active">
-            <div class="flex items-center gap-3">
-                <div class="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
-                <div class="max-w-[150px]">
-                    <h3 id="active-name" class="font-bold text-xs truncate uppercase">---</h3>
-                    <p id="active-timer" class="tomorrow-font text-lg text-cyan-300">00:00:00</p>
+    <div id="recording-overlay" class="mx-4 mt-2 hidden relative z-50">
+        <div class="glass-panel neon-border rounded-2xl p-4 flex flex-col gap-3 recording-active">
+            <div class="flex justify-between items-center w-full">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
+                    <div class="max-w-[150px]">
+                        <h3 id="active-name" class="font-bold text-xs truncate uppercase">---</h3>
+                        <p id="active-timer" class="tomorrow-font text-lg text-cyan-300">00:00:00</p>
+                    </div>
                 </div>
+                <button onclick="stopRecording()" class="bg-red-600 text-white font-bold py-2 px-6 rounded-xl text-sm uppercase shadow-[0_0_15px_rgba(220,38,38,0.5)]">Finish</button>
             </div>
-            <button onclick="stopRecording(false)" class="bg-cyan-500 text-black font-bold py-2 px-6 rounded-xl text-sm">FINISH</button>
+            
+            <div id="live-cost-input-area" class="hidden flex gap-2 w-full pt-2 border-t border-slate-700">
+                <input type="text" id="live-item-name" placeholder="Item Name" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded-lg text-xs outline-none focus:border-cyan-400 text-white">
+                <input type="number" id="live-item-cost" placeholder="¥" class="w-20 bg-slate-900 border border-slate-700 p-2 rounded-lg text-xs tomorrow-font outline-none focus:border-cyan-400 text-white">
+            </div>
         </div>
     </div>
 
@@ -153,47 +160,45 @@
     </div>
 
     <script>
-        // --- データセット ---
-        // ※GPS機能用として主要施設に lat, lng を設定しています。
+        // --- データセット（全施設網羅・GPS削除版） ---
         const masterData = [
             // TDL ATTRACTION
-                   // TDL ATTRACTION
-            { park:'TDL', type:'attraction', area:'ワールドバザール', name:'オムニバス', lat:35.6325, lng:139.8795 },
-            { park:'TDL', type:'attraction', area:'ワールドバザール', name:'ペニーアーケード', lat:35.6324, lng:139.8796 },
-            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'ウエスタンリバー鉄道', lat:35.6318, lng:139.8786 },
-            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'ジャングルクルーズ', lat:35.6319, lng:139.8784 },
-            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'カリブの海賊', lat:35.6327, lng:139.8788 },
-            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'スイスファミリー・ツリーハウス', lat:35.6322, lng:139.8780 },
-            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'魅惑のチキルーム', lat:35.6320, lng:139.8781 },
-            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'シューティングギャラリー', lat:35.6315, lng:139.8778 },
-            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'カントリーベア・シアター', lat:35.6317, lng:139.8775 },
-            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'蒸気船マークトウェイン号', lat:35.6314, lng:139.8770 },
-            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'トムソーヤ島いかだ', lat:35.6310, lng:139.8773 },
-            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'ビッグサンダー・マウンテン', lat:35.6316, lng:139.8765 },
-            { park:'TDL', type:'attraction', area:'クリッターカントリー', name:'スプラッシュ・マウンテン', lat:35.6331, lng:139.8770 },
-            { park:'TDL', type:'attraction', area:'クリッターカントリー', name:'ビーバーブラザーズのカヌー探検', lat:35.6333, lng:139.8768 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'アリスのティーパーティー', lat:35.6332, lng:139.8805 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'イッツ・ア・スモールワールド', lat:35.6336, lng:139.8809 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'キャッスルカルーセル', lat:35.6330, lng:139.8802 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'白雪姫と七人のこびと', lat:35.6330, lng:139.8798 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'シンデレラのフェアリーテイル', lat:35.6328, lng:139.8803 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'空飛ぶダンボ', lat:35.6330, lng:139.8808 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'美女と野獣“魔法のものがたり”', lat:35.6334, lng:139.8824 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'ピーターパン空の旅', lat:35.6329, lng:139.8796 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'ピノキオの冒険旅行', lat:35.6332, lng:139.8800 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'プーさんのハニーハント', lat:35.6334, lng:139.8816 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'ホーンテッドマンション', lat:35.6335, lng:139.8795 },
-            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'ミッキーのフィルハーマジック', lat:35.6331, lng:139.8799 },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ガジェットのゴーコースター', lat:35.6343, lng:139.8818 },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'グーフィーのペイント＆プレイ', lat:35.6345, lng:139.8822 },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'チップとデールのツリーハウス', lat:35.6346, lng:139.8824 },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ドナルドのボート', lat:35.6344, lng:139.8827 },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ミニーの家', lat:35.6343, lng:139.8829 },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ロジャーラビット', lat:35.6342, lng:139.8824 },
-            { park:'TDL', type:'attraction', area:'トゥモローランド', name:'スター・ツアーズ', lat:35.6328, lng:139.8819 },
-            { park:'TDL', type:'attraction', area:'トゥモローランド', name:'スティッチ・エンカウンター', lat:35.6326, lng:139.8820 },
-            { park:'TDL', type:'attraction', area:'トゥモローランド', name:'ベイマックスのハッピーライド', lat:35.6325, lng:139.8826 },
-            { park:'TDL', type:'attraction', area:'トゥモローランド', name:'モンスターズ・インク', lat:35.6324, lng:139.8814 },
+            { park:'TDL', type:'attraction', area:'ワールドバザール', name:'オムニバス' },
+            { park:'TDL', type:'attraction', area:'ワールドバザール', name:'ペニーアーケード' },
+            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'ウエスタンリバー鉄道' },
+            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'ジャングルクルーズ' },
+            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'カリブの海賊' },
+            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'スイスファミリー・ツリーハウス' },
+            { park:'TDL', type:'attraction', area:'アドベンチャーランド', name:'魅惑のチキルーム' },
+            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'シューティングギャラリー' },
+            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'カントリーベア・シアター' },
+            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'蒸気船マークトウェイン号' },
+            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'トムソーヤ島いかだ' },
+            { park:'TDL', type:'attraction', area:'ウエスタンランド', name:'ビッグサンダー・マウンテン' },
+            { park:'TDL', type:'attraction', area:'クリッターカントリー', name:'スプラッシュ・マウンテン' },
+            { park:'TDL', type:'attraction', area:'クリッターカントリー', name:'ビーバーブラザーズのカヌー探検' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'アリスのティーパーティー' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'イッツ・ア・スモールワールド' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'キャッスルカルーセル' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'白雪姫と七人のこびと' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'シンデレラのフェアリーテイル' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'空飛ぶダンボ' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'美女と野獣“魔法のものがたり”' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'ピーターパン空の旅' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'ピノキオの冒険旅行' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'プーさんのハニーハント' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'ホーンテッドマンション' },
+            { park:'TDL', type:'attraction', area:'ファンタジーランド', name:'ミッキーのフィルハーマジック' },
+            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ガジェットのゴーコースター' },
+            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'グーフィーのペイント＆プレイ' },
+            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'チップとデールのツリーハウス' },
+            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ドナルドのボート' },
+            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ミニーの家' },
+            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ロジャーラビット' },
+            { park:'TDL', type:'attraction', area:'トゥモローランド', name:'スター・ツアーズ' },
+            { park:'TDL', type:'attraction', area:'トゥモローランド', name:'スティッチ・エンカウンター' },
+            { park:'TDL', type:'attraction', area:'トゥモローランド', name:'ベイマックスのハッピーライド' },
+            { park:'TDL', type:'attraction', area:'トゥモローランド', name:'モンスターズ・インク' },
 
             // TDL SHOW
             { park:'TDL', type:'show', area:'パレード・ショー', name:'ディズニー・ハーモニー・イン・カラー' },
@@ -227,14 +232,14 @@
             { park:'TDL', type:'food', area:'レストラン', name:'トゥモローランド・テラス' },
             { park:'TDL', type:'food', area:'レストラン', name:'プラズマ・レイズ・ダイナー' },
             { park:'TDL', type:'food', area:'レストラン', name:'パン・ギャラクティック・ピザ・ポート' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ヒューイ・デューイ・ルーイのグッドタイム' },
+            { park:'TDL', type:'food', area:'レストラン', name:'ヒューイ・デューイ・ルーイのグッドタイム・カフェ' },
             { park:'TDL', type:'food', area:'レストラン', name:'キャンプ・ウッドチャック・キッチン' },
             { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'アイスクリームコーン' },
             { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'リフレッシュメント・コーナー' },
             { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'カフェ・オーリンズ' },
             { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'ザ・ガゼーボ' },
             { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'スキッパーズ・ギャレー' },
-            { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'スクウィーザーズ・トロピカル' },
+            { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'スクウィーザーズ・トロピカル・ジュースバー' },
             { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'ロイヤルストリート・ベランダ' },
             { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'パークサイドワゴン' },
             { park:'TDL', type:'food', area:'カウンター・ワゴン', name:'フレッシュフルーツオアシス' },
@@ -288,40 +293,38 @@
             { park:'TDL', type:'dpa', area:'DPA(Show)', name:'エレパレ (DPA)', price:2500 },
 
             // TDS ATTRACTION
-                  // TDS ATTRACTION
-            { park:'TDS', type:'attraction', area:'メディテレーニアンハーバー', name:'ソアリン：ファンタスティック・フライト', lat:35.6264, lng:139.8856 },
-            { park:'TDS', type:'attraction', area:'メディテレーニアンハーバー', name:'ヴェネツィアン・ゴンドラ', lat:35.6260, lng:139.8845 },
-            { park:'TDS', type:'attraction', area:'メディテレーニアンハーバー', name:'トランジットスチーマーライン(ハーバー)', lat:35.6258, lng:139.8850 },
-            { park:'TDS', type:'attraction', area:'メディテレーニアンハーバー', name:'フォートレス・エクスプロレーション', lat:35.6268, lng:139.8852 },
-            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'タワー・オブ・テラー', lat:35.6256, lng:139.8835 },
-            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'トイ・ストーリー・マニア！', lat:35.6250, lng:139.8832 },
-            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'タートル・トーク', lat:35.6253, lng:139.8838 },
-            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'エレクトリックレールウェイ(アメフロ)', lat:35.6259, lng:139.8835 },
-            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'ビッグシティ・ヴィークル', lat:35.6262, lng:139.8838 },
-            { park:'TDS', type:'attraction', area:'ポートディスカバリー', name:'アクアトピア', lat:35.6272, lng:139.8812 },
-            { park:'TDS', type:'attraction', area:'ポートディスカバリー', name:'ニモ＆フレンズ・シーライダー', lat:35.6270, lng:139.8815 },
-            { park:'TDS', type:'attraction', area:'ポートディスカバリー', name:'エレクトリックレールウェイ(ポート)', lat:35.6275, lng:139.8813 },
-            { park:'TDS', type:'attraction', area:'ロストリバーデルタ', name:'インディ・ジョーンズ', lat:35.6293, lng:139.8811 },
-            { park:'TDS', type:'attraction', area:'ロストリバーデルタ', name:'レイジングスピリッツ', lat:35.6295, lng:139.8818 },
-            { park:'TDS', type:'attraction', area:'ロストリバーデルタ', name:'トランジットスチーマーライン(ロスト)', lat:35.6291, lng:139.8822 },
-            { park:'TDS', type:'attraction', area:'アラビアンコースト', name:'ジャスミンのフライングカーペット', lat:35.6300, lng:139.8842 },
-            { park:'TDS', type:'attraction', area:'アラビアンコースト', name:'シンドバッド', lat:35.6305, lng:139.8845 },
-            { park:'TDS', type:'attraction', area:'アラビアンコースト', name:'マジックランプシアター', lat:35.6302, lng:139.8848 },
-            { park:'TDS', type:'attraction', area:'アラビアンコースト', name:'キャラバンカルーセル', lat:35.6304, lng:139.8840 },
-            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'ジャンピン・ジェリーフィッシュ', lat:35.6290, lng:139.8855 },
-            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'フランダーのフライングフィッシュ', lat:35.6288, lng:139.8858 },
-            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'スカットルのスクーター', lat:35.6285, lng:139.8856 },
-            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'ワールプール', lat:35.6292, lng:139.8854 },
-            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'ブローフィッシュ・バルーンレース', lat:35.6291, lng:139.8856 },
-            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'アリエルのプレイグラウンド', lat:35.6294, lng:139.8855 },
-            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'マーメイドラグーンシアター', lat:35.6295, lng:139.8858 },
-            { park:'TDS', type:'attraction', area:'ミステリアスアイランド', name:'センター・オブ・ジ・アース', lat:35.6278, lng:139.8845 },
-            { park:'TDS', type:'attraction', area:'ミステリアスアイランド', name:'海底2万マイル', lat:35.6275, lng:139.8842 },
-            { park:'TDS', type:'attraction', area:'ファンタジースプリングス', name:'アナとエルサのフローズンジャーニー', lat:35.6328, lng:139.8805 },
-            { park:'TDS', type:'attraction', area:'ファンタジースプリングス', name:'ラプンツェルのランタンフェスティバル', lat:35.6325, lng:139.8808 },
-            { park:'TDS', type:'attraction', area:'ファンタジースプリングス', name:'ピーターパンのネバーランド', lat:35.6322, lng:139.8815 },
-            { park:'TDS', type:'attraction', area:'ファンタジースプリングス', name:'ティンカーベルのビジーバギー', lat:35.6320, lng:139.8818 },
-
+            { park:'TDS', type:'attraction', area:'メディテレーニアンハーバー', name:'ソアリン：ファンタスティック・フライト' },
+            { park:'TDS', type:'attraction', area:'メディテレーニアンハーバー', name:'ヴェネツィアン・ゴンドラ' },
+            { park:'TDS', type:'attraction', area:'メディテレーニアンハーバー', name:'トランジットスチーマーライン(ハーバー)' },
+            { park:'TDS', type:'attraction', area:'メディテレーニアンハーバー', name:'フォートレス・エクスプロレーション' },
+            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'タワー・オブ・テラー' },
+            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'トイ・ストーリー・マニア！' },
+            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'タートル・トーク' },
+            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'エレクトリックレールウェイ(アメフロ)' },
+            { park:'TDS', type:'attraction', area:'アメリカンウォーターフロント', name:'ビッグシティ・ヴィークル' },
+            { park:'TDS', type:'attraction', area:'ポートディスカバリー', name:'アクアトピア' },
+            { park:'TDS', type:'attraction', area:'ポートディスカバリー', name:'ニモ＆フレンズ・シーライダー' },
+            { park:'TDS', type:'attraction', area:'ポートディスカバリー', name:'エレクトリックレールウェイ(ポート)' },
+            { park:'TDS', type:'attraction', area:'ロストリバーデルタ', name:'インディ・ジョーンズ' },
+            { park:'TDS', type:'attraction', area:'ロストリバーデルタ', name:'レイジングスピリッツ' },
+            { park:'TDS', type:'attraction', area:'ロストリバーデルタ', name:'トランジットスチーマーライン(ロスト)' },
+            { park:'TDS', type:'attraction', area:'アラビアンコースト', name:'ジャスミンのフライングカーペット' },
+            { park:'TDS', type:'attraction', area:'アラビアンコースト', name:'シンドバッド' },
+            { park:'TDS', type:'attraction', area:'アラビアンコースト', name:'マジックランプシアター' },
+            { park:'TDS', type:'attraction', area:'アラビアンコースト', name:'キャラバンカルーセル' },
+            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'ジャンピン・ジェリーフィッシュ' },
+            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'フランダーのフライングフィッシュ' },
+            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'スカットルのスクーター' },
+            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'ワールプール' },
+            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'ブローフィッシュ・バルーンレース' },
+            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'アリエルのプレイグラウンド' },
+            { park:'TDS', type:'attraction', area:'マーメイドラグーン', name:'マーメイドラグーンシアター' },
+            { park:'TDS', type:'attraction', area:'ミステリアスアイランド', name:'センター・オブ・ジ・アース' },
+            { park:'TDS', type:'attraction', area:'ミステリアスアイランド', name:'海底2万マイル' },
+            { park:'TDS', type:'attraction', area:'ファンタジースプリングス', name:'アナとエルサのフローズンジャーニー' },
+            { park:'TDS', type:'attraction', area:'ファンタジースプリングス', name:'ラプンツェルのランタンフェスティバル' },
+            { park:'TDS', type:'attraction', area:'ファンタジースプリングス', name:'ピーターパンのネバーランドアドベンチャー' },
+            { park:'TDS', type:'attraction', area:'ファンタジースプリングス', name:'ティンカーベルのビジーバギー' },
 
             // TDS SHOW
             { park:'TDS', type:'show', area:'パレード・ショー', name:'ビリーヴ！〜シー・オブ・ドリームス〜' },
@@ -414,18 +417,7 @@
         let costHistory = [];
         let totalCost = 0;
         let isInPark = false;
-        
-                // GPS (現在地の取得のみ。自動停止は無効化)
-        let userPos = { lat: 35.632, lng: 139.884 };
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(p => {
-                userPos.lat = p.coords.latitude;
-                userPos.lng = p.coords.longitude;
-            }, err => console.log(err), { enableHighAccuracy: true });
-        }
 
-
-        // 現在時刻をHH:MM形式で取得
         function getCurrentTime() {
             const d = new Date();
             const h = String(d.getHours()).padStart(2, '0');
@@ -463,38 +455,6 @@
             document.getElementById('modal-title').innerText = `${type.toUpperCase()} SELECT`;
             content.innerHTML = '';
             
-            // GPS Suggestion
-            const suggestions = masterData
-                .filter(d => d.park === currentPark && d.type === type && d.lat)
-                .map(d => ({ ...d, dist: getDist(userPos.lat, userPos.lng, d.lat, d.lng) }))
-                .sort((a, b) => a.dist - b.dist).slice(0, 3);
-
-            if(suggestions.length > 0) {
-                const head = document.createElement('div');
-                head.className = "mb-6";
-                head.innerHTML = `<h3 class="text-[8px] font-bold text-cyan-400 mb-2 tomorrow-font tracking-widest uppercase">>>> NEARBY SUGGESTION</h3>`;
-                const grid = document.createElement('div');
-                grid.className = "grid grid-cols-2 gap-2";
-                suggestions.forEach(spot => {
-                    const btn = document.createElement('button');
-                    btn.className = "glass-panel rounded-xl border border-cyan-400 text-white active:bg-cyan-900 rect-btn relative overflow-hidden";
-                    btn.innerHTML = `<span>${spot.name}</span>${spot.price ? `<span class="text-[9px] text-yellow-400">¥${spot.price}</span>` : `<span class="text-[8px] text-cyan-300 font-normal">${Math.round(spot.dist)}m</span>`}`;
-                    btn.onclick = () => { 
-                        if(spot.type === 'dpa') {
-                            const timeStr = getCurrentTime();
-                            addCost(spot.name, spot.price, timeStr);
-                            addTimelineHistory(`購入: ${spot.name}`, timeStr, timeStr, `¥${spot.price}`, 'cost');
-                        } else {
-                            startRecording(spot);
-                        }
-                        closeModal(); 
-                    };
-                    grid.appendChild(btn);
-                });
-                head.appendChild(grid);
-                content.appendChild(head);
-            }
-            
             const filtered = masterData.filter(d => d.park === currentPark && d.type === type);
             const groups = filtered.reduce((a, o) => { (a[o.area] = a[o.area] || []).push(o); return a; }, {});
             
@@ -528,19 +488,17 @@
             document.getElementById('modal-overlay').classList.add('flex');
         }
 
-        // 共通：タイムライン配列へのPush関数
-        function addTimelineHistory(name, start, end, duration, status, startTimeObj = null, lat = null, lng = null) {
+        function addTimelineHistory(name, start, end, duration, status, startTimeObj = null) {
             const newLog = {
-                id: Date.now() + Math.random(), // Unique ID
+                id: Date.now() + Math.random(),
                 name: name,
                 start: start,
                 end: end,
                 duration: duration,
                 memo: '',
-                status: status, // 'active', 'finished', 'cost', 'info'
+                status: status,
                 startTimeObj: startTimeObj,
-                lat: lat,
-                lng: lng
+                type: currentRecord ? currentRecord.type : null
             };
             history.push(newLog);
             renderTimeline();
@@ -548,16 +506,26 @@
         }
 
         function startRecording(spot) {
-            if (currentRecord) stopRecording(false);
+            if (currentRecord) stopRecording();
             
             const startTimeObj = new Date();
             const timeStr = getCurrentTime();
             
-            // タイムラインに「進行中」として登録
-            currentRecord = addTimelineHistory(spot.name, timeStr, '---', '00:00:00', 'active', startTimeObj, spot.lat, spot.lng);
+            currentRecord = { ...spot, startTimeObj: startTimeObj };
             
             document.getElementById('active-name').innerText = spot.name;
             document.getElementById('recording-overlay').classList.remove('hidden');
+            
+            if(spot.type === 'shop' || spot.type === 'food') {
+                document.getElementById('live-cost-input-area').classList.remove('hidden');
+                document.getElementById('live-item-name').value = '';
+                document.getElementById('live-item-cost').value = '';
+            } else {
+                document.getElementById('live-cost-input-area').classList.add('hidden');
+            }
+
+            currentRecord.tlRef = addTimelineHistory(spot.name, timeStr, '---', '00:00:00', 'active', startTimeObj);
+            currentRecord.tlRef.type = spot.type;
             
             if(timerId) clearInterval(timerId);
             timerId = setInterval(updateActiveTimer, 1000);
@@ -574,22 +542,31 @@
             
             document.getElementById('active-timer').innerText = formatted;
             
-            // タイムライン上の表示もリアルタイム更新
-            const tlDuration = document.getElementById(`duration-${currentRecord.id}`);
+            const tlDuration = document.getElementById(`duration-${currentRecord.tlRef.id}`);
             if(tlDuration) tlDuration.innerText = formatted;
         }
 
-        function stopRecording(isAuto = false) {
+        function stopRecording() {
             if (!currentRecord) return;
+            
             const endObj = new Date();
             const diff = Math.floor((endObj - currentRecord.startTimeObj) / 1000);
-            const durStr = `${Math.floor(diff/60)}m ${diff%60}s`;
+            let durStr = `${Math.floor(diff/60)}m ${diff%60}s`;
+            const startStr = currentRecord.tlRef.start;
             
-            // 既存のレコードを更新
-            currentRecord.end = getCurrentTime();
-            currentRecord.duration = durStr;
-            currentRecord.status = 'finished';
-            if(isAuto) currentRecord.name += ' (AUTO)';
+            if(currentRecord.type === 'shop' || currentRecord.type === 'food') {
+                const iName = document.getElementById('live-item-name').value;
+                const iCost = parseInt(document.getElementById('live-item-cost').value);
+                if(iCost > 0) {
+                    const displayName = iName ? `${currentRecord.name} - ${iName}` : currentRecord.name;
+                    addCost(displayName, iCost, startStr);
+                    durStr = `${durStr} / ¥${iCost}`;
+                }
+            }
+
+            currentRecord.tlRef.end = getCurrentTime();
+            currentRecord.tlRef.duration = durStr;
+            currentRecord.tlRef.status = 'finished';
             
             clearInterval(timerId);
             currentRecord = null;
@@ -632,12 +609,10 @@
             document.getElementById('timeline-wrapper').scrollTo({ top: 9999, behavior: 'smooth' });
         }
 
-        // --- メモ更新 ---
         function updateMemo(index, val) {
             history[index].memo = val;
         }
 
-        // --- ログの時刻編集機能 ---
         function openEditTimeModal(index) {
             const log = history[index];
             const content = document.getElementById('modal-content');
@@ -650,11 +625,11 @@
                         <input id="edit-start" type="time" value="${log.start}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white">
                     </div>`;
             
-            if (log.status === 'finished') {
+            if (log.status === 'finished' || log.status === 'active') {
                 html += `
                     <div>
                         <label class="text-[10px] text-cyan-400 uppercase">End Time</label>
-                        <input id="edit-end" type="time" value="${log.end}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white">
+                        <input id="edit-end" type="time" value="${log.end === '---' ? '' : log.end}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white">
                     </div>`;
             }
             
@@ -675,33 +650,37 @@
             if(newStart) log.start = newStart;
 
             if (log.status === 'cost') {
-                // コストの時刻同期
                 if (log.duration.startsWith('¥')) {
                     const rawName = log.name.replace('購入: ', '');
                     const costObj = costHistory.find(c => c.name === rawName && c.time === oldStart);
                     if(costObj) costObj.time = newStart;
                 }
             } else if (log.status === 'active') {
-                // アクティブ中のスタート時間を変えたら内部タイマーの基準も変更する
                 const [hours, minutes] = newStart.split(':');
                 const now = new Date();
                 now.setHours(hours, minutes, 0, 0);
                 log.startTimeObj = now;
+                if(currentRecord && currentRecord.tlRef.id === log.id) {
+                    currentRecord.startTimeObj = now;
+                }
             } else if (log.status === 'finished') {
-                // 終了済みの時間を変えたらDurationを再計算
                 const newEnd = document.getElementById('edit-end').value;
                 if(newEnd) log.end = newEnd;
                 
-                const [sH, sM] = log.start.split(':');
-                const [eH, eM] = log.end.split(':');
-                const sDate = new Date(); sDate.setHours(sH, sM, 0, 0);
-                const eDate = new Date(); eDate.setHours(eH, eM, 0, 0);
-                
-                // 翌日を跨いだ場合の補正
-                if(eDate < sDate) eDate.setDate(eDate.getDate() + 1);
-                
-                const diff = Math.floor((eDate - sDate) / 1000);
-                log.duration = `${Math.floor(diff/60)}m ${diff%60}s`;
+                if(log.start && log.end && log.start !== '---' && log.end !== '---') {
+                    const [sH, sM] = log.start.split(':');
+                    const [eH, eM] = log.end.split(':');
+                    const sDate = new Date(); sDate.setHours(sH, sM, 0, 0);
+                    const eDate = new Date(); eDate.setHours(eH, eM, 0, 0);
+                    if(eDate < sDate) eDate.setDate(eDate.getDate() + 1);
+                    
+                    const diff = Math.floor((eDate - sDate) / 1000);
+                    let costPart = '';
+                    if(log.duration.includes(' / ¥')) {
+                        costPart = ' / ¥' + log.duration.split(' / ¥')[1];
+                    }
+                    log.duration = `${Math.floor(diff/60)}m ${diff%60}s${costPart}`;
+                }
             }
             
             renderTimeline();
@@ -721,7 +700,6 @@
                     }
                 }
                 
-                // もし削除したのがアクティブ中の記録ならタイマーも停止する
                 if (log.status === 'active') {
                     clearInterval(timerId);
                     currentRecord = null;
@@ -745,7 +723,6 @@
         }
         function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
-        // --- コスト手動計算機能 (オートフォーカス対応) ---
         function openCalculator() {
             const content = document.getElementById('modal-content');
             document.getElementById('modal-title').innerText = "COST ADD";
@@ -764,11 +741,8 @@
             `;
             document.getElementById('modal-overlay').classList.remove('hidden');
             document.getElementById('modal-overlay').classList.add('flex');
-            
-            // iOS Safari対策：setTimeoutを外し、タップイベント内で即座に同期的にfocus()を実行
             document.getElementById('calc-name').focus();
         }
-
 
         function addCostFromCalc() {
             const name = document.getElementById('calc-name').value || "Others";
@@ -809,11 +783,32 @@
             await navigator.clipboard.writeText(text); alert("Cost list copied!");
         }
 
-        // --- 全体書き出し (メモ反映) ---
-        async function openExportModal() {
+        // --- 全体データ インポート / エクスポート ---
+        function openDataModal() {
             const content = document.getElementById('modal-content');
-            document.getElementById('modal-title').innerText = "EXPORT ALL";
+            document.getElementById('modal-title').innerText = "DATA MANAGEMENT";
             
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-[10px] text-cyan-400 font-bold mb-2">TEXT EXPORT (FOR NOTES)</h3>
+                        <button onclick="copyTextLog()" class="w-full bg-cyan-900 text-cyan-100 py-3 rounded-xl text-[10px] tomorrow-font border border-cyan-500 font-bold">Copy Text Log</button>
+                    </div>
+                    <div class="border-t border-slate-700 pt-4">
+                        <h3 class="text-[10px] text-cyan-400 font-bold mb-2">SYSTEM BACKUP (JSON)</h3>
+                        <textarea id="json-data-area" rows="5" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-[9px] font-mono text-cyan-100 outline-none focus:border-cyan-400" placeholder="Paste JSON data here to import..."></textarea>
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="generateJson()" class="flex-1 bg-slate-700 text-white py-3 rounded-xl text-[10px] tomorrow-font font-bold">Generate JSON</button>
+                            <button onclick="importJson()" class="flex-1 bg-red-900/80 text-red-100 py-3 rounded-xl text-[10px] tomorrow-font border border-red-500 font-bold">Import JSON</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById('modal-overlay').classList.add('flex');
+        }
+
+        async function copyTextLog() {
             let logText = history.map(h => {
                 const timeRange = (h.status === 'active' || h.status === 'finished') ? `${h.start}〜${h.end}` : h.start;
                 const memoText = h.memo ? `\n  └ Memo: ${h.memo}` : '';
@@ -823,29 +818,59 @@
             let costText = costHistory.map(c => `${c.time} | ${c.name} : ¥${c.amount}`).join('\n');
             logText += `\n\n--- COST BREAKDOWN ---\n${costText}\nTOTAL: ¥${totalCost}`;
             
-            content.innerHTML = `
-                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-4 text-[9px] font-mono whitespace-pre-wrap max-h-[50vh] overflow-y-auto" id="raw-log-container"><span id="raw-log">${logText}</span></div>
-                <button onclick="copyLog()" class="w-full bg-cyan-500 text-black py-3 rounded-xl uppercase tomorrow-font font-bold">Copy Clipboard</button>
-            `;
-            document.getElementById('modal-overlay').classList.remove('hidden');
-            document.getElementById('modal-overlay').classList.add('flex');
+            await navigator.clipboard.writeText(logText); 
+            alert("Text Log Copied!"); 
         }
 
-        async function copyLog() { 
-            const textToCopy = document.querySelector('#raw-log').innerText;
-            await navigator.clipboard.writeText(textToCopy); 
-            alert("Logs Copied!"); 
+        async function generateJson() {
+            const data = { history, costHistory, totalCost };
+            const jsonStr = JSON.stringify(data);
+            document.getElementById('json-data-area').value = jsonStr;
+            await navigator.clipboard.writeText(jsonStr);
+            alert("JSON Generated & Copied to clipboard!");
         }
 
-        // 距離計算関数（ハバーシン公式）
-        function getDist(lat1, lng1, lat2, lng2) {
-            const R = 6371000;
-            const dLat = (lat2-lat1)*Math.PI/180;
-            const dLng = (lng2-lng1)*Math.PI/180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        function importJson() {
+            const jsonStr = document.getElementById('json-data-area').value;
+            if(!jsonStr) { alert("Please paste JSON data first."); return; }
+            try {
+                const data = JSON.parse(jsonStr);
+                if(data.history && data.costHistory) {
+                    if(confirm("Current data will be overwritten. Proceed?")) {
+                        history = data.history;
+                        history.forEach(h => {
+                            if(h.startTimeObj) h.startTimeObj = new Date(h.startTimeObj);
+                        });
+                        costHistory = data.costHistory;
+                        totalCost = data.totalCost || 0;
+                        document.getElementById('cost-display-value').innerText = `¥${totalCost.toLocaleString()}`;
+                        
+                        const activeLog = history.find(h => h.status === 'active');
+                        if(activeLog) {
+                            currentRecord = { name: activeLog.name, startTimeObj: activeLog.startTimeObj, tlRef: activeLog, type: activeLog.type };
+                            document.getElementById('active-name').innerText = activeLog.name;
+                            document.getElementById('recording-overlay').classList.remove('hidden');
+                            
+                            if(activeLog.type === 'shop' || activeLog.type === 'food') {
+                                document.getElementById('live-cost-input-area').classList.remove('hidden');
+                            }
+                            
+                            if(timerId) clearInterval(timerId);
+                            timerId = setInterval(updateActiveTimer, 1000);
+                            updateActiveTimer();
+                        }
+                        
+                        renderTimeline();
+                        alert("Import Successful!");
+                        closeModal();
+                    }
+                } else {
+                    alert("Invalid JSON format.");
+                }
+            } catch(e) {
+                alert("Failed to parse JSON.");
+            }
         }
-
     </script>
 </body>
 </html>
