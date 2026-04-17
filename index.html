@@ -22,7 +22,11 @@
         .tomorrow-font { font-family: 'Orbitron', sans-serif; }
         .glass-panel { background: var(--panel-bg); backdrop-filter: blur(15px); border: 1px solid rgba(0, 242, 255, 0.15); }
         .neon-border { border: 1px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 242, 255, 0.15); }
-        .neon-text { text-shadow: 0 0 10px var(--neon-blue); }
+        
+        /* テキストシャドウ定義 */
+        .text-shadow-cyan { text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
+        .text-shadow-yellow { text-shadow: 0 0 10px rgba(250, 204, 21, 0.5); }
+        .text-shadow-red { text-shadow: 0 0 10px rgba(248, 113, 113, 0.8); }
         
         main { flex: 0 0 auto; }
         
@@ -42,7 +46,7 @@
         .category-icon { width: 22px; height: 22px; margin-bottom: 2px; stroke: var(--neon-blue); fill: none; stroke-width: 1.5; }
         
         .cost-display-bar {
-            background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(234, 179, 8, 0.3);
+            background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 242, 255, 0.2);
             border-radius: 12px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
         }
 
@@ -58,13 +62,13 @@
 
     <header class="p-4 glass-panel flex justify-between items-center border-b border-cyan-500/30">
         <div>
-            <h1 class="tomorrow-font text-base neon-text tracking-widest font-bold italic">EXTREME Disney</h1>
-            <p id="current-park-display" class="text-[9px] text-cyan-500 tomorrow-font uppercase">Sector: TDL</p>
+            <h1 class="tomorrow-font text-base text-shadow-cyan tracking-widest font-bold italic text-cyan-300">EXTREME Disney</h1>
+            <p id="current-park-display" class="text-[9px] text-cyan-500 tomorrow-font uppercase mt-0.5">Sector: TDL</p>
         </div>
         <div class="flex gap-1">
             <button onclick="resetAllLogs()" class="px-2 py-2 rounded-lg border border-red-900 bg-red-950/40 text-[8px] tomorrow-font text-red-400 uppercase">Reset</button>
-            <button onclick="openDataModal()" class="px-2 py-2 rounded-lg border border-cyan-700 bg-cyan-950/40 text-[8px] tomorrow-font uppercase">Data</button>
-            <button id="park-status-btn" onclick="toggleParkInOut()" class="px-3 py-2 rounded-lg border border-cyan-400 text-[9px] font-bold tomorrow-font bg-cyan-900/50 uppercase">In Park</button>
+            <button onclick="openDataModal()" class="px-2 py-2 rounded-lg border border-cyan-700 bg-cyan-950/40 text-[8px] tomorrow-font text-cyan-100 uppercase">Data</button>
+            <button id="park-status-btn" onclick="toggleParkInOut()" class="px-3 py-2 rounded-lg border border-cyan-400 text-[9px] font-bold tomorrow-font bg-cyan-900/50 text-cyan-100 uppercase">In Park</button>
         </div>
     </header>
 
@@ -81,7 +85,7 @@
                 <button onclick="stopRecording()" class="bg-red-600 text-white font-bold py-2 px-6 rounded-xl text-sm uppercase shadow-[0_0_15px_rgba(220,38,38,0.5)]">Finish</button>
             </div>
             
-                        <div id="live-cost-input-area" class="hidden flex gap-2 w-full pt-3 border-t border-slate-700 items-center">
+            <div id="live-cost-input-area" class="hidden flex gap-2 w-full pt-3 border-t border-slate-700 items-center">
                 <input type="number" id="live-item-cost" placeholder="Cost (¥)" class="flex-1 bg-slate-900 border border-slate-700 py-2 px-3 rounded-xl text-base tomorrow-font outline-none focus:border-cyan-400 text-white tracking-widest">
                 <button onclick="saveLiveCost()" id="live-cost-save-btn" class="bg-yellow-500 text-black font-bold py-2 px-6 rounded-xl text-sm uppercase tomorrow-font min-w-[90px]">Save</button>
             </div>
@@ -89,24 +93,24 @@
     </div>
 
     <main class="p-4 space-y-3">
-                <div class="space-y-2">
+        <div class="space-y-2">
             <div class="flex p-1 rounded-xl bg-slate-900/80 border border-slate-800">
                 <button onclick="switchPark('TDL')" id="btn-TDL" class="flex-1 py-3 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-black uppercase tracking-widest">Land</button>
                 <button onclick="switchPark('TDS')" id="btn-TDS" class="flex-1 py-3 rounded-lg text-xs font-bold transition-all text-slate-400 uppercase tracking-widest">Sea</button>
             </div>
-            <div class="cost-display-bar py-3" onclick="openCostHistory()">
-                <span class="tomorrow-font text-[11px] text-yellow-500 tracking-[0.2em] font-bold">TOTAL EXPENSES</span>
-                <span id="cost-display-value" class="tomorrow-font text-xl text-yellow-400 neon-text font-bold">¥0</span>
+            <div class="cost-display-bar py-3 relative overflow-hidden" onclick="openCostHistory()">
+                <div id="budget-progress" class="absolute left-0 top-0 bottom-0 bg-cyan-900/30 w-0 transition-all duration-500"></div>
+                <div class="relative z-10 flex justify-between w-full items-center px-2">
+                    <div class="flex flex-col">
+                        <span class="tomorrow-font text-[10px] text-cyan-400 tracking-[0.2em] font-bold" id="budget-label">BUDGET: ¥30,000</span>
+                        <span class="tomorrow-font text-[9px] text-slate-400 tracking-widest mt-0.5">TOTAL EXPENSES</span>
+                    </div>
+                    <span id="cost-display-value" class="tomorrow-font text-xl text-cyan-300 font-bold text-shadow-cyan">¥0</span>
+                </div>
             </div>
         </div>
 
-            <div class="cost-display-bar" onclick="openCostHistory()">
-                <span class="tomorrow-font text-[9px] text-yellow-500 tracking-widest font-bold">TOTAL EXPENSES</span>
-                <span id="cost-display-value" class="tomorrow-font text-base text-yellow-400 neon-text font-bold">¥0</span>
-            </div>
-        </div>
-
-                <div class="grid grid-cols-4 gap-2">
+        <div class="grid grid-cols-4 gap-2">
             <button onclick="openCategory('attraction')" class="glass-panel p-2 rounded-xl border border-slate-800 flex flex-col items-center active:bg-cyan-900/30">
                 <svg class="category-icon mb-1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                 <span class="tomorrow-font text-[9px] text-cyan-400 uppercase tracking-wider">Attr</span>
@@ -144,8 +148,8 @@
 
     <div id="timeline-wrapper" class="border-t border-cyan-500/20 glass-panel rounded-t-[2rem]">
         <div class="flex justify-between items-center px-6 pt-6 pb-4 sticky top-0 bg-slate-950/90 backdrop-blur-xl z-10 rounded-t-[2rem] border-b border-cyan-900/30">
-            <h2 class="tomorrow-font text-[10px] text-cyan-400 tracking-[0.3em] font-bold uppercase">Mission Timeline</h2>
-            <span id="log-count" class="text-[10px] text-slate-500 tomorrow-font uppercase tracking-widest">0 Logged</span>
+            <h2 class="tomorrow-font text-xs text-cyan-400 tracking-[0.3em] font-bold uppercase">Mission Timeline</h2>
+            <span id="log-count" class="text-xs text-slate-500 tomorrow-font uppercase tracking-widest">0 Logged</span>
         </div>
         <div id="timeline-list" class="space-y-2 pb-10 px-4 pt-2">
             <div class="text-center py-10"><p class="text-[9px] text-slate-600 tomorrow-font tracking-widest italic uppercase">Waiting for input...</p></div>
@@ -413,16 +417,17 @@
             { park:'TDS', type:'rest', area:'休憩', name:'フォートレス付近' }
         ];
 
-                let currentPark = 'TDL';
+        let currentPark = 'TDL';
         let currentRecord = null;
         let timerId = null;
         let history = [];
         let costHistory = [];
         let totalCost = 0;
+        let budget = 30000; // 予算上限デフォルト値
         let isInPark = false;
         let sortableTimeline = null;
 
-        // 触感フィードバック（Haptic）機能
+        // 触感フィードバック
         function haptic(pattern = 15) {
             if (navigator.vibrate) {
                 navigator.vibrate(pattern);
@@ -430,8 +435,36 @@
         }
 
         function saveData() {
-            const data = { history, costHistory, totalCost };
+            const data = { history, costHistory, totalCost, budget };
             localStorage.setItem('extremeDisneyData', JSON.stringify(data));
+        }
+
+        // コスト表示と予算ゲージの更新関数
+        function updateCostDisplay() {
+            const ratio = budget > 0 ? totalCost / budget : 0;
+            const progressEl = document.getElementById('budget-progress');
+            const valueEl = document.getElementById('cost-display-value');
+            const labelEl = document.getElementById('budget-label');
+            
+            labelEl.innerText = `BUDGET: ¥${budget.toLocaleString()}`;
+            valueEl.innerText = `¥${totalCost.toLocaleString()}`;
+            
+            let percent = Math.min(ratio * 100, 100);
+            progressEl.style.width = `${percent}%`;
+            
+            if (ratio >= 1.0) {
+                progressEl.className = "absolute left-0 top-0 bottom-0 bg-red-900/50 w-full transition-all duration-500";
+                valueEl.className = "tomorrow-font text-xl text-red-400 font-bold text-shadow-red animate-pulse";
+                labelEl.className = "tomorrow-font text-[10px] text-red-500 tracking-[0.2em] font-bold";
+            } else if (ratio >= 0.8) {
+                progressEl.className = "absolute left-0 top-0 bottom-0 bg-yellow-900/50 transition-all duration-500";
+                valueEl.className = "tomorrow-font text-xl text-yellow-400 font-bold text-shadow-yellow";
+                labelEl.className = "tomorrow-font text-[10px] text-yellow-500 tracking-[0.2em] font-bold";
+            } else {
+                progressEl.className = "absolute left-0 top-0 bottom-0 bg-cyan-900/30 transition-all duration-500";
+                valueEl.className = "tomorrow-font text-xl text-cyan-300 font-bold text-shadow-cyan";
+                labelEl.className = "tomorrow-font text-[10px] text-cyan-400 tracking-[0.2em] font-bold";
+            }
         }
 
         function getCurrentTime() {
@@ -811,7 +844,7 @@
                     if (costIndex !== -1) {
                         totalCost -= costHistory[costIndex].amount;
                         costHistory.splice(costIndex, 1);
-                        document.getElementById('cost-display-value').innerText = `¥${totalCost.toLocaleString()}`;
+                        updateCostDisplay();
                     }
                 }
                 
@@ -831,7 +864,7 @@
             haptic(20);
             if(confirm("RESET ALL LOGS AND COSTS?")) { 
                 history=[]; costHistory=[]; totalCost=0; 
-                document.getElementById('cost-display-value').innerText="¥0"; 
+                updateCostDisplay();
                 if(timerId) clearInterval(timerId);
                 currentRecord = null;
                 document.getElementById('recording-overlay').classList.add('hidden');
@@ -878,8 +911,16 @@
         function addCost(name, amount, timeStr) {
             costHistory.push({ name, amount, time: timeStr });
             totalCost += amount;
-            document.getElementById('cost-display-value').innerText = `¥${totalCost.toLocaleString()}`;
+            updateCostDisplay();
             saveData();
+        }
+
+        function saveBudget() {
+            haptic(15);
+            const newBudget = parseInt(document.getElementById('budget-input').value) || 0;
+            budget = newBudget;
+            saveData();
+            updateCostDisplay();
         }
 
         function openCostHistory() {
@@ -892,8 +933,16 @@
                     <span class="text-yellow-400 font-bold">¥${c.amount.toLocaleString()}</span>
                 </div>
             `).join('');
+            
             content.innerHTML = `
-                <div class="space-y-1 mb-4 max-h-[40vh] overflow-y-auto">${listHtml || '<div class="text-center py-10"><p class="text-[9px] text-slate-600 tomorrow-font tracking-widest italic uppercase">No expenses</p></div>'}</div>
+                <div class="mb-4 bg-slate-900 p-3 rounded-xl border border-slate-700">
+                    <label class="text-[9px] text-cyan-400 uppercase tracking-widest mb-1 block">Set Budget Limit (¥)</label>
+                    <div class="flex gap-2">
+                        <input id="budget-input" type="number" value="${budget}" class="flex-1 bg-slate-800 border border-slate-600 p-2 rounded-lg text-sm tomorrow-font outline-none focus:border-cyan-400 text-white tracking-widest">
+                        <button onclick="saveBudget()" class="bg-cyan-700 text-cyan-100 px-4 rounded-lg text-[10px] tomorrow-font font-bold uppercase">Set</button>
+                    </div>
+                </div>
+                <div class="space-y-1 mb-4 max-h-[35vh] overflow-y-auto">${listHtml || '<div class="text-center py-10"><p class="text-[9px] text-slate-600 tomorrow-font tracking-widest italic uppercase">No expenses</p></div>'}</div>
                 <button onclick="copyCostLog()" class="w-full bg-cyan-500 text-black py-3 rounded-xl uppercase text-[10px] tomorrow-font font-bold">Copy Cost List</button>
             `;
             document.getElementById('modal-overlay').classList.remove('hidden');
@@ -902,7 +951,7 @@
 
         async function copyCostLog() {
             haptic(15);
-            let text = costHistory.map(c => `${c.time} | ${c.name} : ¥${c.amount}`).join('\n') + `\n------------------\nTOTAL: ¥${totalCost}`;
+            let text = costHistory.map(c => `${c.time} | ${c.name} : ¥${c.amount}`).join('\n') + `\n------------------\nTOTAL: ¥${totalCost} / LIMIT: ¥${budget}`;
             await navigator.clipboard.writeText(text); alert("Cost list copied!");
         }
 
@@ -940,7 +989,7 @@
             }).join('\n');
             
             let costText = costHistory.map(c => `${c.time} | ${c.name} : ¥${c.amount}`).join('\n');
-            logText += `\n\n--- COST BREAKDOWN ---\n${costText}\nTOTAL: ¥${totalCost}`;
+            logText += `\n\n--- COST BREAKDOWN ---\n${costText}\nTOTAL: ¥${totalCost} / LIMIT: ¥${budget}`;
             
             await navigator.clipboard.writeText(logText); 
             alert("Text Log Copied!"); 
@@ -948,7 +997,7 @@
 
         async function generateJson() {
             haptic(15);
-            const data = { history, costHistory, totalCost };
+            const data = { history, costHistory, totalCost, budget };
             const jsonStr = JSON.stringify(data);
             document.getElementById('json-data-area').value = jsonStr;
             await navigator.clipboard.writeText(jsonStr);
@@ -969,7 +1018,8 @@
                         });
                         costHistory = data.costHistory;
                         totalCost = data.totalCost || 0;
-                        document.getElementById('cost-display-value').innerText = `¥${totalCost.toLocaleString()}`;
+                        budget = data.budget || 30000;
+                        updateCostDisplay();
                         
                         const activeLog = history.find(h => h.status === 'active');
                         if(activeLog) {
@@ -1028,6 +1078,7 @@
         }
 
         window.onload = () => {
+            updateCostDisplay(); // 初期表示用
             const savedData = localStorage.getItem('extremeDisneyData');
             if(savedData) {
                 try {
@@ -1039,7 +1090,8 @@
                         });
                         costHistory = data.costHistory;
                         totalCost = data.totalCost || 0;
-                        document.getElementById('cost-display-value').innerText = `¥${totalCost.toLocaleString()}`;
+                        budget = data.budget || 30000;
+                        updateCostDisplay();
                         
                         const activeLog = history.find(h => h.status === 'active');
                         if(activeLog) {
