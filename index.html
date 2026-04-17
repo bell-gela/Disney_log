@@ -56,6 +56,37 @@
 
         @keyframes pulse-slow { 0%, 100% { border-color: rgba(0,242,255,0.2); } 50% { border-color: rgba(0,242,255,1); } }
         .recording-active { animation: pulse-slow 2s infinite; border-width: 2px; }
+        /* あなたの既存のCSSコード */
+
+/* ↓↓↓ ここに貼り付けます ↓↓↓ */
+#memo-container {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+.memo-box {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  box-sizing: border-box;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  white-space: pre-wrap;
+  cursor: pointer;
+}
+textarea.memo-box {
+  cursor: text;
+  resize: vertical;
+  font-family: inherit;
+}
+.hidden {
+  display: none;
+}
+
     </style>
 </head>
 <body>
@@ -1191,5 +1222,31 @@
             }
         };
     </script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const memoDisplay = document.getElementById('memo-display');
+  const memoInput = document.getElementById('memo-input');
+
+  const savedMemo = localStorage.getItem('dailyMemo');
+  if (savedMemo) {
+    memoDisplay.textContent = savedMemo;
+    memoInput.value = savedMemo;
+  }
+
+  memoDisplay.addEventListener('click', () => {
+    memoDisplay.classList.add('hidden');
+    memoInput.classList.remove('hidden');
+    memoInput.focus();
+  });
+
+  memoInput.addEventListener('blur', () => {
+    const text = memoInput.value;
+    memoDisplay.textContent = text !== '' ? text : 'ここをタップして今日のやることなどをメモ...';
+    localStorage.setItem('dailyMemo', text);
+    memoInput.classList.add('hidden');
+    memoDisplay.classList.remove('hidden');
+  });
+});
+</script>
 </body>
 </html>
