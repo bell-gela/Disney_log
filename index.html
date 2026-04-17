@@ -415,19 +415,15 @@
         let totalCost = 0;
         let isInPark = false;
         
-        // GPS
+                // GPS (現在地の取得のみ。自動停止は無効化)
         let userPos = { lat: 35.632, lng: 139.884 };
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition(p => {
                 userPos.lat = p.coords.latitude;
                 userPos.lng = p.coords.longitude;
-                if (currentRecord && currentRecord.lat) {
-                    if (getDist(userPos.lat, userPos.lng, currentRecord.lat, currentRecord.lng) > 200) {
-                        stopRecording(true);
-                    }
-                }
             }, err => console.log(err), { enableHighAccuracy: true });
         }
+
 
         // 現在時刻をHH:MM形式で取得
         function getCurrentTime() {
