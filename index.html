@@ -84,8 +84,8 @@
             </div>
             
             <div id="live-cost-input-area" class="hidden flex-col gap-3 w-full pt-3 border-t border-slate-700">
-                <input type="text" id="live-item-name" placeholder="Item Name" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm outline-none focus:border-cyan-400 text-white">
-                <input type="number" id="live-item-cost" placeholder="Amount (¥)" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white">
+                <input type="text" id="live-item-name" placeholder="Item" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl tomorrow-font outline-none focus:border-cyan-400 text-white tracking-widest">
+                <input type="number" id="live-item-cost" placeholder="Cost" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl tomorrow-font outline-none focus:border-cyan-400 text-white tracking-widest">
             </div>
         </div>
     </div>
@@ -138,12 +138,12 @@
         </div>
     </main>
 
-    <div id="timeline-wrapper" class="px-4 border-t border-cyan-500/20 glass-panel rounded-t-[2rem]">
-        <div class="flex justify-between items-center py-4 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10">
-            <h2 class="tomorrow-font text-[9px] text-cyan-400 tracking-[0.3em] font-bold uppercase">Mission Timeline</h2>
-            <span id="log-count" class="text-[9px] text-slate-500 tomorrow-font uppercase tracking-widest">0 Logged</span>
+    <div id="timeline-wrapper" class="border-t border-cyan-500/20 glass-panel rounded-t-[2rem]">
+        <div class="flex justify-between items-center px-6 pt-6 pb-4 sticky top-0 bg-slate-950/90 backdrop-blur-xl z-10 rounded-t-[2rem] border-b border-cyan-900/30">
+            <h2 class="tomorrow-font text-[10px] text-cyan-400 tracking-[0.3em] font-bold uppercase">Mission Timeline</h2>
+            <span id="log-count" class="text-[10px] text-slate-500 tomorrow-font uppercase tracking-widest">0 Logged</span>
         </div>
-        <div id="timeline-list" class="space-y-2 pb-10">
+        <div id="timeline-list" class="space-y-2 pb-10 px-4 pt-2">
             <div class="text-center py-10"><p class="text-[9px] text-slate-600 tomorrow-font tracking-widest italic uppercase">Waiting for input...</p></div>
         </div>
     </div>
@@ -160,7 +160,7 @@
     </div>
 
     <script>
-        // --- データセット（全施設網羅・GPS削除版） ---
+        // --- データセット ---
         const masterData = [
             // TDL ATTRACTION
             { park:'TDL', type:'attraction', area:'ワールドバザール', name:'オムニバス' },
@@ -477,7 +477,7 @@
                     btn.className = "glass-panel rounded-xl border border-slate-800 text-white active:bg-cyan-900 rect-btn";
                     btn.innerHTML = `<span>${spot.name}</span>${spot.price ? `<span class="text-[9px] text-yellow-400">¥${spot.price}</span>` : ''}`;
                     btn.onclick = () => { 
-                        closeModal(); // iOSのキーボード表示対策のため、モーダルを先に閉じる
+                        closeModal();
                         if(spot.type === 'dpa') {
                             const timeStr = getCurrentTime();
                             addCost(spot.name, spot.price, timeStr);
@@ -530,7 +530,7 @@
                 liveArea.classList.add('flex');
                 document.getElementById('live-item-name').value = '';
                 document.getElementById('live-item-cost').value = '';
-                // iOSのオートフォーカス対策
+                // iOSのオートフォーカス対策：モーダルを閉じた後の実行なので直接focus可能
                 document.getElementById('live-item-name').focus();
             } else {
                 liveArea.classList.remove('flex');
@@ -759,7 +759,6 @@
             `;
             document.getElementById('modal-overlay').classList.remove('hidden');
             document.getElementById('modal-overlay').classList.add('flex');
-            // iOSのオートフォーカス対策
             document.getElementById('calc-name').focus();
         }
 
