@@ -415,19 +415,7 @@
         let totalCost = 0;
         let isInPark = false;
         
-        // GPS (アトラクションから200m離れたら自動停止)
-        let userPos = { lat: 35.632, lng: 139.884 };
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(p => {
-                userPos.lat = p.coords.latitude;
-                userPos.lng = p.coords.longitude;
-                if (currentRecord && currentRecord.lat) {
-                    if (getDist(userPos.lat, userPos.lng, currentRecord.lat, currentRecord.lng) > 200) {
-                        stopRecording(true); // 自動停止フラグを立てる
-                    }
-                }
-            }, err => console.log(err), { enableHighAccuracy: true });
-        }
+     
 
         // 時間フォーマットをHH:MMに統一（iPhoneの時刻入力フォーム対応のため）
         function getCurrentTime() {
