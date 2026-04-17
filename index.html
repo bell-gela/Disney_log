@@ -186,6 +186,14 @@ textarea.memo-box {
             <div class="text-center py-10"><p class="text-[9px] text-slate-600 tomorrow-font tracking-widest italic uppercase">Waiting for input...</p></div>
         </div>
     </div>
+    </div>
+
+<div id="memo-container">
+  <h3>📝 今日のメモ</h3>
+  <div id="memo-display" class="memo-box">ここをタップして今日のやることなどをメモ...</div>
+  <textarea id="memo-input" class="memo-box hidden" placeholder="メモを入力..."></textarea>
+</div>
+
 
     <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] hidden flex-col items-center justify-end">
         <div class="absolute inset-0" onclick="closeModal()"></div>
