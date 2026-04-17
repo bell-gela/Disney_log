@@ -83,9 +83,9 @@
                 <button onclick="stopRecording()" class="bg-red-600 text-white font-bold py-2 px-6 rounded-xl text-sm uppercase shadow-[0_0_15px_rgba(220,38,38,0.5)]">Finish</button>
             </div>
             
-            <div id="live-cost-input-area" class="hidden flex gap-2 w-full pt-2 border-t border-slate-700">
-                <input type="text" id="live-item-name" placeholder="Item Name" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded-lg text-xs outline-none focus:border-cyan-400 text-white">
-                <input type="number" id="live-item-cost" placeholder="¥" class="w-20 bg-slate-900 border border-slate-700 p-2 rounded-lg text-xs tomorrow-font outline-none focus:border-cyan-400 text-white">
+            <div id="live-cost-input-area" class="hidden flex-col gap-3 w-full pt-3 border-t border-slate-700">
+                <input type="text" id="live-item-name" placeholder="Item Name" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm outline-none focus:border-cyan-400 text-white">
+                <input type="number" id="live-item-cost" placeholder="Amount (¥)" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-lg tomorrow-font outline-none focus:border-cyan-400 text-white">
             </div>
         </div>
     </div>
@@ -418,6 +418,13 @@
         let totalCost = 0;
         let isInPark = false;
 
+        // ローカルストレージ保存関数
+        function saveData() {
+            const data = { history, costHistory, totalCost };
+            localStorage.setItem('extremeDisneyData', JSON.stringify(data));
+        }
+
+        // 時間フォーマット取得関数
         function getCurrentTime() {
             const d = new Date();
             const h = String(d.getHours()).padStart(2, '0');
@@ -470,6 +477,7 @@
                     btn.className = "glass-panel rounded-xl border border-slate-800 text-white active:bg-cyan-900 rect-btn";
                     btn.innerHTML = `<span>${spot.name}</span>${spot.price ? `<span class="text-[9px] text-yellow-400">¥${spot.price}</span>` : ''}`;
                     btn.onclick = () => { 
+                        closeModal(); // iOSのキーボード表示対策のため、モーダルを先に閉じる
                         if(spot.type === 'dpa') {
                             const timeStr = getCurrentTime();
                             addCost(spot.name, spot.price, timeStr);
@@ -477,7 +485,6 @@
                         } else {
                             startRecording(spot);
                         }
-                        closeModal(); 
                     };
                     grid.appendChild(btn);
                 });
@@ -501,6 +508,7 @@
                 type: currentRecord ? currentRecord.type : null
             };
             history.push(newLog);
+            saveData();
             renderTimeline();
             return newLog;
         }
@@ -516,12 +524,17 @@
             document.getElementById('active-name').innerText = spot.name;
             document.getElementById('recording-overlay').classList.remove('hidden');
             
+            const liveArea = document.getElementById('live-cost-input-area');
             if(spot.type === 'shop' || spot.type === 'food') {
-                document.getElementById('live-cost-input-area').classList.remove('hidden');
+                liveArea.classList.remove('hidden');
+                liveArea.classList.add('flex');
                 document.getElementById('live-item-name').value = '';
                 document.getElementById('live-item-cost').value = '';
+                // iOSのオートフォーカス対策
+                document.getElementById('live-item-name').focus();
             } else {
-                document.getElementById('live-cost-input-area').classList.add('hidden');
+                liveArea.classList.remove('flex');
+                liveArea.classList.add('hidden');
             }
 
             currentRecord.tlRef = addTimelineHistory(spot.name, timeStr, '---', '00:00:00', 'active', startTimeObj);
@@ -568,6 +581,7 @@
             currentRecord.tlRef.duration = durStr;
             currentRecord.tlRef.status = 'finished';
             
+            saveData();
             clearInterval(timerId);
             currentRecord = null;
             document.getElementById('recording-overlay').classList.add('hidden');
@@ -611,6 +625,7 @@
 
         function updateMemo(index, val) {
             history[index].memo = val;
+            saveData();
         }
 
         function openEditTimeModal(index) {
@@ -683,6 +698,7 @@
                 }
             }
             
+            saveData();
             renderTimeline();
             closeModal();
         }
@@ -707,6 +723,7 @@
                 }
                 
                 history.splice(i, 1); 
+                saveData();
                 renderTimeline(); 
             } 
         }
@@ -718,6 +735,7 @@
                 if(timerId) clearInterval(timerId);
                 currentRecord = null;
                 document.getElementById('recording-overlay').classList.add('hidden');
+                saveData();
                 renderTimeline(); 
             } 
         }
@@ -741,6 +759,7 @@
             `;
             document.getElementById('modal-overlay').classList.remove('hidden');
             document.getElementById('modal-overlay').classList.add('flex');
+            // iOSのオートフォーカス対策
             document.getElementById('calc-name').focus();
         }
 
@@ -759,6 +778,7 @@
             costHistory.push({ name, amount, time: timeStr });
             totalCost += amount;
             document.getElementById('cost-display-value').innerText = `¥${totalCost.toLocaleString()}`;
+            saveData();
         }
 
         function openCostHistory() {
@@ -851,8 +871,13 @@
                             document.getElementById('active-name').innerText = activeLog.name;
                             document.getElementById('recording-overlay').classList.remove('hidden');
                             
+                            const liveArea = document.getElementById('live-cost-input-area');
                             if(activeLog.type === 'shop' || activeLog.type === 'food') {
-                                document.getElementById('live-cost-input-area').classList.remove('hidden');
+                                liveArea.classList.remove('hidden');
+                                liveArea.classList.add('flex');
+                            } else {
+                                liveArea.classList.remove('flex');
+                                liveArea.classList.add('hidden');
                             }
                             
                             if(timerId) clearInterval(timerId);
@@ -860,6 +885,7 @@
                             updateActiveTimer();
                         }
                         
+                        saveData();
                         renderTimeline();
                         alert("Import Successful!");
                         closeModal();
@@ -871,6 +897,48 @@
                 alert("Failed to parse JSON.");
             }
         }
+
+        // --- 起動時のデータ読み込み ---
+        window.onload = () => {
+            const savedData = localStorage.getItem('extremeDisneyData');
+            if(savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    if(data.history && data.costHistory) {
+                        history = data.history;
+                        history.forEach(h => {
+                            if(h.startTimeObj) h.startTimeObj = new Date(h.startTimeObj);
+                        });
+                        costHistory = data.costHistory;
+                        totalCost = data.totalCost || 0;
+                        document.getElementById('cost-display-value').innerText = `¥${totalCost.toLocaleString()}`;
+                        
+                        const activeLog = history.find(h => h.status === 'active');
+                        if(activeLog) {
+                            currentRecord = { name: activeLog.name, startTimeObj: activeLog.startTimeObj, tlRef: activeLog, type: activeLog.type };
+                            document.getElementById('active-name').innerText = activeLog.name;
+                            document.getElementById('recording-overlay').classList.remove('hidden');
+                            
+                            const liveArea = document.getElementById('live-cost-input-area');
+                            if(activeLog.type === 'shop' || activeLog.type === 'food') {
+                                liveArea.classList.remove('hidden');
+                                liveArea.classList.add('flex');
+                            } else {
+                                liveArea.classList.remove('flex');
+                                liveArea.classList.add('hidden');
+                            }
+                            
+                            if(timerId) clearInterval(timerId);
+                            timerId = setInterval(updateActiveTimer, 1000);
+                            updateActiveTimer();
+                        }
+                        renderTimeline();
+                    }
+                } catch(e) {
+                    console.error("Failed to load data.", e);
+                }
+            }
+        };
     </script>
 </body>
 </html>
