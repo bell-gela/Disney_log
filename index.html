@@ -12,11 +12,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --neon-blue: #00f2ff; --deep-space: #020617; --panel-bg: rgba(15, 23, 42, 0.95); }
-        body {
+                body {
             background-color: var(--deep-space);
             background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, var(--deep-space) 100%);
             color: #e0faff; font-family: 'Noto Sans JP', sans-serif;
-            margin: 0; height: 100dvh; overflow: hidden; display: flex; flex-direction: column;
+            margin: 0; 
+            min-height: 100dvh; 
+            overflow-x: hidden; 
+            overflow-y: auto; /* 画面全体をスクロール可能に変更 */
+            display: flex; flex-direction: column;
             padding-top: env(safe-area-inset-top);
         }
         .tomorrow-font { font-family: 'Orbitron', sans-serif; }
@@ -32,10 +36,12 @@
         
         #timeline-wrapper { 
             flex: 1 1 auto; 
-            height: 380px; 
+            height: 400px; 
+            min-height: 400px; /* ここで最低5〜6リスト分の高さを死守 */
             overflow-y: auto; 
             -webkit-overflow-scrolling: touch; 
         }
+
         #timeline-wrapper::-webkit-scrollbar { display: none; }
 
         .rect-btn {
