@@ -25,6 +25,7 @@
         .category-icon { width: 20px; height: 20px; margin-bottom: 2px; stroke: var(--neon-blue); fill: none; stroke-width: 1.5; }
         .cost-display-bar { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 12px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
         input, select, textarea { font-size: 16px !important; max-width: 100%; box-sizing: border-box; }
+        input[type="checkbox"] { accent-color: #22c55e; width: 1.2rem; height: 1.2rem; }
 
         @keyframes pulse-slow { 0%, 100% { border-color: rgba(0,242,255,0.2); } 50% { border-color: rgba(0,242,255,1); } }
         .recording-active { animation: pulse-slow 2s infinite; border-width: 2px; }
@@ -45,14 +46,15 @@
     </header>
 
     <div id="pre-park-dashboard" class="p-4 space-y-5 pb-10 w-full flex-col flex">
-        <div class="glass-panel p-5 rounded-2xl relative border-t-2 border-t-cyan-500 shadow-[0_0_20px_rgba(0,242,255,0.1)]">
+        
+        <div class="glass-panel p-5 rounded-2xl relative border-t-2 border-t-cyan-500 shadow-[0_0_20px_rgba(0,242,255,0.1)] w-full">
             <button onclick="openPreParkSettings()" class="absolute top-3 right-3 text-cyan-600 text-lg">⚙️</button>
             <h2 class="tomorrow-font text-[10px] text-cyan-400 tracking-[0.3em] font-bold uppercase mb-3 text-center">Mission Start</h2>
             <div id="countdown-display" class="tomorrow-font text-3xl text-cyan-300 text-shadow-cyan text-center font-bold tracking-widest leading-none">-- DAYS<br><span class="text-xl">--:--:--</span></div>
             <div id="target-date-display" class="text-center text-[9px] text-slate-500 mt-3 tomorrow-font tracking-widest uppercase">TARGET: ---</div>
         </div>
 
-        <div class="glass-panel p-4 rounded-2xl border-l-2 border-l-yellow-500">
+        <div class="glass-panel p-4 rounded-2xl border-l-2 border-l-yellow-500 w-full">
             <div class="flex justify-between items-center mb-1">
                 <h2 class="tomorrow-font text-[10px] text-yellow-500 tracking-[0.2em] font-bold uppercase">Mission Fund</h2>
                 <button onclick="openFundHistoryModal()" class="text-slate-400 text-[10px] px-2 py-1 bg-slate-800 rounded hover:bg-slate-700 active:text-yellow-500 uppercase font-bold tracking-widest">History</button>
@@ -64,33 +66,108 @@
             <div class="h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-700 mb-4">
                 <div id="fund-progress-bar" class="h-full bg-yellow-500 transition-all duration-700" style="width: 0%"></div>
             </div>
-            <div class="flex gap-2">
-                <select id="fund-input-amount" class="flex-[2] bg-slate-900/80 border border-slate-700 p-2 rounded-xl text-sm tomorrow-font text-white text-center appearance-none"></select>
-                <button onclick="addFundFromInput()" class="flex-1 bg-yellow-600 text-black font-bold py-2 px-2 rounded-xl text-xs tomorrow-font uppercase tracking-widest">Add</button>
+            <div class="flex flex-col gap-2 w-full">
+                <select id="fund-select-amount" onchange="document.getElementById('fund-input-amount').value=this.value; this.selectedIndex=0;" class="w-full bg-slate-900/80 border border-slate-700 p-2 rounded-xl text-sm tomorrow-font text-slate-400 text-center appearance-none outline-none focus:border-yellow-500 min-w-0"></select>
+                <div class="flex gap-2 w-full">
+                    <input type="number" id="fund-input-amount" placeholder="¥ 自由入力" class="flex-[3] bg-slate-900/80 border border-slate-700 p-2 rounded-xl text-sm tomorrow-font text-white text-center outline-none focus:border-yellow-500 min-w-0">
+                    <button onclick="addFundFromInput()" class="flex-1 bg-yellow-600 text-black font-bold py-2 px-2 rounded-xl text-xs tomorrow-font uppercase tracking-widest min-w-[60px]">Add</button>
+                </div>
             </div>
         </div>
 
-        <div>
+        <div class="glass-panel p-4 rounded-2xl border-l-2 border-l-green-500 w-full">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="tomorrow-font text-[10px] text-green-400 tracking-[0.2em] font-bold uppercase">Condition Setting</h2>
+                <div class="flex items-center gap-3">
+                    <span id="readiness-percent" class="tomorrow-font text-xs text-green-300 font-bold">0%</span>
+                    <button onclick="openConditionSettingsModal()" class="text-green-500 text-sm">⚙️</button>
+                </div>
+            </div>
+            <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700 mb-3">
+                <div id="readiness-bar" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div id="condition-list" class="space-y-2"></div>
+        </div>
+
+        <div class="w-full">
             <h2 class="tomorrow-font text-[10px] text-cyan-400 tracking-[0.2em] font-bold uppercase mb-2 ml-1">Preparation Log</h2>
             <div class="flex gap-2 mb-4 w-full">
-    <input type="text" id="tweet-input" placeholder="ワクワクするための準備..." class="flex-1 bg-slate-900/80 border border-slate-700 py-2 px-3 rounded-xl text-sm text-white outline-none focus:border-cyan-400 min-w-0">
-    <button onclick="postTweet()" class="w-20 shrink-0 bg-cyan-600 text-black font-bold py-2 rounded-xl text-[10px] tomorrow-font uppercase">Post</button>
-</div>
-            <div id="tweet-list" class="space-y-3"></div>
+                <input type="text" id="tweet-input" placeholder="ワクワクするための準備..." class="flex-[3] bg-slate-900/80 border border-slate-700 py-2 px-3 rounded-xl text-sm text-white outline-none focus:border-cyan-400 min-w-0">
+                <button onclick="postTweet()" class="flex-1 bg-cyan-600 text-black font-bold py-2 px-2 rounded-xl text-[10px] tomorrow-font uppercase min-w-[60px]">Post</button>
+            </div>
+            <div id="tweet-list" class="space-y-3 w-full"></div>
         </div>
+
+        <div class="glass-panel p-4 rounded-2xl border-l-2 border-l-orange-500 w-full relative">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="tomorrow-font text-[10px] text-orange-400 tracking-[0.2em] font-bold uppercase">Climate Delta</h2>
+                <span id="weather-badge" class="text-[8px] border border-slate-600 text-slate-500 px-1 rounded tomorrow-font tracking-widest">NO API</span>
+            </div>
+            <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                <div class="text-center flex-1">
+                    <span class="text-[9px] text-slate-400 tomorrow-font tracking-widest">HKD</span><br>
+                    <input type="number" id="temp-hkd" value="15" onchange="updateClimate()" class="bg-transparent text-xl tomorrow-font text-white w-12 text-center outline-none border-b border-slate-600">
+                    <span class="text-xs text-slate-500">°C</span>
+                </div>
+                <div class="text-center flex-1 flex flex-col items-center justify-center">
+                    <span class="text-[8px] text-slate-500 uppercase tracking-widest">Diff</span>
+                    <span id="temp-diff" class="text-sm font-bold text-orange-400 tomorrow-font bg-orange-900/30 px-2 py-1 rounded">ΔT +10.0</span>
+                </div>
+                <div class="text-center flex-1">
+                    <span class="text-[9px] text-slate-400 tomorrow-font tracking-widest">NRT</span><br>
+                    <input type="number" id="temp-nrt" value="25" onchange="updateClimate()" class="bg-transparent text-xl tomorrow-font text-orange-300 w-12 text-center outline-none border-b border-slate-600">
+                    <span class="text-xs text-slate-500">°C</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-4 rounded-2xl border-l-2 border-l-indigo-500 w-full">
+            <div class="flex justify-between items-center mb-1">
+                <h2 class="tomorrow-font text-[10px] text-indigo-400 tracking-[0.2em] font-bold uppercase">Minimal Loadout</h2>
+                <div class="flex items-center gap-3">
+                    <span id="loadout-status" class="tomorrow-font text-xs text-indigo-300 font-bold">0g / 2000g</span>
+                    <button onclick="openLoadoutSettingsModal()" class="text-indigo-500 text-sm">⚙️</button>
+                </div>
+            </div>
+            <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700 mb-3">
+                <div id="loadout-bar" class="h-full bg-indigo-500 transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="loadout-name" placeholder="Item Name" class="flex-[2] bg-slate-900/80 border border-slate-700 py-2 px-3 rounded-xl text-xs text-white outline-none focus:border-indigo-400 min-w-0">
+                <input type="number" id="loadout-weight" placeholder="Weight(g)" class="flex-1 bg-slate-900/80 border border-slate-700 py-2 px-3 rounded-xl text-xs tomorrow-font text-white outline-none focus:border-indigo-400 min-w-0 text-center">
+                <button onclick="addLoadout()" class="bg-indigo-600 text-white font-bold px-3 rounded-xl text-[10px] tomorrow-font uppercase">Add</button>
+            </div>
+            <div id="loadout-list" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
+        </div>
+
+        <div class="glass-panel p-4 rounded-2xl border-l-2 border-l-red-500 w-full">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="tomorrow-font text-[10px] text-red-400 tracking-[0.2em] font-bold uppercase">Tactical "First 120"</h2>
+                <span id="tactical-total" class="tomorrow-font text-xs text-red-300 font-bold">Total: ¥0</span>
+            </div>
+            <div class="flex flex-col gap-2 mb-3 w-full">
+                <select id="tactical-select" class="w-full bg-slate-900/80 border border-slate-700 py-2 px-3 rounded-xl text-xs text-white outline-none focus:border-red-400 appearance-none text-center"></select>
+                <div class="flex gap-2 w-full">
+                    <input type="text" id="tactical-memo" placeholder="メモ (例: 9:00取得狙い)" class="flex-[3] bg-slate-900/80 border border-slate-700 py-2 px-3 rounded-xl text-xs text-white outline-none focus:border-red-400 min-w-0">
+                    <button onclick="addTactical()" class="flex-1 bg-red-600 text-white font-bold px-2 rounded-xl text-[10px] tomorrow-font uppercase min-w-[50px]">Add</button>
+                </div>
+            </div>
+            <div id="tactical-list" class="space-y-1.5 pb-2"></div>
+        </div>
+
     </div>
 
-    <div id="in-park-dashboard" class="hidden flex-col w-full flex-1">
+    <div id="in-park-dashboard" class="hidden flex-col w-full flex-1 relative">
         
         <div id="cooldown-container" class="shrink-0 bg-slate-950/95 border-b border-cyan-900/50 p-2 z-40 hidden gap-3 shadow-lg sticky top-[72px]">
-            <div id="dpa-timer-block" class="flex-1 glass-panel p-2 rounded-lg border-l-2 border-red-500 hidden">
+            <div id="dpa-timer-block" class="flex-1 glass-panel p-2 rounded-lg border-l-2 border-red-500 hidden relative">
                 <div class="flex justify-between items-center mb-1">
                     <span class="tomorrow-font text-[9px] text-red-400 font-bold uppercase tracking-tighter flex items-center gap-1"><span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span> DPA</span>
                     <span id="dpa-timer-text" class="tomorrow-font text-[11px] text-red-300 font-bold">--:--</span>
                 </div>
                 <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden"><div id="dpa-timer-bar" class="h-full bg-red-500 transition-all" style="width: 0%"></div></div>
             </div>
-            <div id="pp-timer-block" class="flex-1 glass-panel p-2 rounded-lg border-l-2 border-yellow-500 hidden">
+            <div id="pp-timer-block" class="flex-1 glass-panel p-2 rounded-lg border-l-2 border-yellow-500 hidden relative">
                 <div class="flex justify-between items-center mb-1">
                     <span class="tomorrow-font text-[9px] text-yellow-500 font-bold uppercase tracking-tighter flex items-center gap-1"><span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-ping"></span> PP</span>
                     <span id="pp-timer-text" class="tomorrow-font text-[11px] text-yellow-300 font-bold">--:--</span>
@@ -150,7 +227,7 @@
                 <span class="tomorrow-font text-[10px] text-green-400 font-bold uppercase tracking-widest">Physical Status</span>
             </button>
 
-            <div class="glass-panel p-3 rounded-xl border border-slate-800 cursor-pointer active:bg-cyan-900/30" onclick="openDailyMemoModal()">
+            <div class="glass-panel p-3 rounded-xl border border-slate-800 cursor-pointer active:bg-cyan-900/30 transition-colors mt-2" onclick="openDailyMemoModal()">
                 <div class="flex justify-between items-center mb-2">
                     <span class="tomorrow-font text-[10px] text-cyan-400 tracking-[0.2em] font-bold uppercase">Mission Notes</span>
                     <span class="text-cyan-600 text-sm">✎</span>
@@ -160,7 +237,7 @@
         </main>
 
         <div id="timeline-wrapper" class="border-t border-cyan-500/20 glass-panel rounded-t-[2rem] w-full flex-1">
-            <div onclick="openFullTimeline()" class="shrink-0 cursor-pointer active:bg-slate-900/50 flex justify-between items-center px-6 pt-6 pb-4 sticky top-0 bg-slate-950/95 backdrop-blur-xl z-10 rounded-t-[2rem] border-b border-cyan-900/30">
+            <div onclick="openFullTimeline()" class="shrink-0 cursor-pointer active:bg-slate-900/50 flex justify-between items-center px-6 pt-6 pb-4 sticky top-0 bg-slate-950/95 backdrop-blur-xl z-10 rounded-t-[2rem] border-b border-cyan-900/30 transition-colors w-full">
                 <h2 class="tomorrow-font text-xs text-cyan-400 tracking-[0.3em] font-bold uppercase flex items-center gap-2">Timeline <span class="text-[12px] opacity-70">🔍</span></h2>
                 <span id="log-count" class="text-[10px] text-slate-500 tomorrow-font uppercase">0 Logged</span>
             </div>
@@ -170,7 +247,7 @@
         </div>
     </div>
 
-    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] hidden flex-col justify-end">
+    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] hidden flex-col justify-end w-full">
         <div class="absolute inset-0" onclick="closeModal()"></div>
         <div id="modal-container" class="glass-panel neon-border w-full rounded-t-[2.5rem] p-6 relative z-[110] max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
@@ -186,199 +263,17 @@
         // 1. 完全版マスターデータ
         // ==========================================
         const masterData = [
-            // --- TDL ---
-            { park:'TDL', type:'attraction', area:'ワールドバザール', name:'オムニバス' },
-            { park:'TDL', type:'attraction', area:'ワールドバザール', name:'ペニーアーケード' },
-            { park:'TDL', type:'attraction', area:'アドベンチャー', name:'ウエスタンリバー鉄道' },
-            { park:'TDL', type:'attraction', area:'アドベンチャー', name:'ジャングルクルーズ' },
-            { park:'TDL', type:'attraction', area:'アドベンチャー', name:'カリブの海賊' },
-            { park:'TDL', type:'attraction', area:'アドベンチャー', name:'スイスファミリー・ツリーハウス' },
-            { park:'TDL', type:'attraction', area:'アドベンチャー', name:'魅惑のチキルーム' },
-            { park:'TDL', type:'attraction', area:'ウエスタン', name:'シューティングギャラリー' },
-            { park:'TDL', type:'attraction', area:'ウエスタン', name:'カントリーベア・シアター' },
-            { park:'TDL', type:'attraction', area:'ウエスタン', name:'蒸気船マークトウェイン号' },
-            { park:'TDL', type:'attraction', area:'ウエスタン', name:'トムソーヤ島いかだ' },
-            { park:'TDL', type:'attraction', area:'ウエスタン', name:'ビッグサンダー・マウンテン' },
-            { park:'TDL', type:'attraction', area:'クリッター', name:'スプラッシュ・マウンテン' },
-            { park:'TDL', type:'attraction', area:'クリッター', name:'カヌー探検' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'アリスのティーパーティー' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'イッツ・ア・スモールワールド' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'キャッスルカルーセル' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'白雪姫と七人のこびと' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'シンデレラのフェアリーテイル' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'空飛ぶダンボ' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'美女と野獣“魔法のものがたり”' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'ピーターパン空の旅' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'ピノキオの冒険旅行' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'プーさんのハニーハント' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'ホーンテッドマンション' },
-            { park:'TDL', type:'attraction', area:'ファンタジー', name:'ミッキーのフィルハーマジック' },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ガジェットのゴーコースター' },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'グーフィーのペイント＆プレイ' },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'チップとデールのツリーハウス' },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ドナルドのボート' },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ミニーの家' },
-            { park:'TDL', type:'attraction', area:'トゥーンタウン', name:'ロジャーラビット' },
-            { park:'TDL', type:'attraction', area:'トゥモロー', name:'スター・ツアーズ' },
-            { park:'TDL', type:'attraction', area:'トゥモロー', name:'スティッチ・エンカウンター' },
-            { park:'TDL', type:'attraction', area:'トゥモロー', name:'ベイマックスのハッピーライド' },
-            { park:'TDL', type:'attraction', area:'トゥモロー', name:'モンスターズ・インク' },
-            { park:'TDL', type:'show', area:'ショー・パレード', name:'ハーモニー・イン・カラー' },
-            { park:'TDL', type:'show', area:'ショー・パレード', name:'エレクトリカルパレード' },
-            { park:'TDL', type:'show', area:'ショー・パレード', name:'Reach for the Stars' },
-            { park:'TDL', type:'show', area:'ショー・パレード', name:'ジャンボリミッキー！' },
-            { park:'TDL', type:'show', area:'ショー・パレード', name:'マジカルミュージックワールド' },
-            { park:'TDL', type:'show', area:'ショー・パレード', name:'クラブマウスビート' },
-            { park:'TDL', type:'greeting', area:'グリーティング', name:'メインストリート・ハウス前' },
-            { park:'TDL', type:'greeting', area:'グリーティング', name:'ウッドチャック・トレイル' },
-            { park:'TDL', type:'greeting', area:'グリーティング', name:'ミート・ミッキー' },
-            { park:'TDL', type:'greeting', area:'グリーティング', name:'ミニーのスタイルスタジオ' },
-            { park:'TDL', type:'food', area:'レストラン', name:'イーストサイド・カフェ' },
-            { park:'TDL', type:'food', area:'レストラン', name:'センターストリート・コーヒーハウス' },
-            { park:'TDL', type:'food', area:'レストラン', name:'れすとらん北齋' },
-            { park:'TDL', type:'food', area:'レストラン', name:'スウィートハート・カフェ' },
-            { park:'TDL', type:'food', area:'レストラン', name:'リフレッシュメント・コーナー' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ブルーバイユー・レストラン' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ポリネシアンテラス・レストラン' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ダイヤモンドホースシュー' },
-            { park:'TDL', type:'food', area:'レストラン', name:'チャイナボイジャー' },
-            { park:'TDL', type:'food', area:'レストラン', name:'カフェ・オーリンズ' },
-            { park:'TDL', type:'food', area:'レストラン', name:'スキッパーズ・ギャレー' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ハングリーベア・レストラン' },
-            { park:'TDL', type:'food', area:'レストラン', name:'キャンプ・ウッドチャック・キッチン' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ペコスビル・カフェ' },
-            { park:'TDL', type:'food', area:'レストラン', name:'グランマ・サラのキッチン' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ラケッティのラクーンサルーン' },
-            { park:'TDL', type:'food', area:'レストラン', name:'クイーン・オブ・ハート' },
-            { park:'TDL', type:'food', area:'レストラン', name:'キャプテンフックス・ギャレー' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ガストン' },
-            { park:'TDL', type:'food', area:'レストラン', name:'ヒューイ・デューイ・ルーイのカフェ' },
-            { park:'TDL', type:'food', area:'レストラン', name:'トゥモローランド・テラス' },
-            { park:'TDL', type:'food', area:'レストラン', name:'プラズマ・レイズ・ダイナー' },
-            { park:'TDL', type:'food', area:'レストラン', name:'パン・ギャラクティック・ピザ' },
-            { park:'TDL', type:'food', area:'ワゴン', name:'各地ポップコーン' },
-            { park:'TDL', type:'food', area:'ワゴン', name:'各地チュロス / スナック' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'グランドエンポーリアム' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'ワールドバザール・コンフェクショナリー' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'タウンセンターファッション' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'マジックショップ' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'ホームストア' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'トイ・ステーション' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'ガラスの靴' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'プーさんコーナー' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'ビレッジショップス' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'ギャグファクトリー' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'プラネットM' },
-            { park:'TDL', type:'shop', area:'ショップ', name:'トレジャーコメット' },
-            // ここ！typeをすべて'pass'に統一しました
-            { park:'TDL', type:'pass', area:'DPA(有料)', name:'美女と野獣 (DPA)', price:2000, passType:'dpa' },
-            { park:'TDL', type:'pass', area:'DPA(有料)', name:'ベイマックス (DPA)', price:1500, passType:'dpa' },
-            { park:'TDL', type:'pass', area:'DPA(有料)', name:'スプラッシュ (DPA)', price:1500, passType:'dpa' },
-            { park:'TDL', type:'pass', area:'DPA(Show)', name:'Reach for the Stars (DPA)', price:2500, passType:'dpa' },
-            { park:'TDL', type:'pass', area:'DPA(Show)', name:'ハモカラ (DPA)', price:2500, passType:'dpa' },
-            { park:'TDL', type:'pass', area:'DPA(Show)', name:'エレパレ (DPA)', price:2500, passType:'dpa' },
-            { park:'TDL', type:'pass', area:'PP(無料)', name:'ホーンテッド (PP)', passType:'pp' },
-            { park:'TDL', type:'pass', area:'PP(無料)', name:'プーさん (PP)', passType:'pp' },
-            { park:'TDL', type:'pass', area:'PP(無料)', name:'モンスターズ (PP)', passType:'pp' },
-            { park:'TDL', type:'pass', area:'PP(無料)', name:'スターツアーズ (PP)', passType:'pp' },
-            { park:'TDL', type:'pass', area:'PP(無料)', name:'スペースマウンテン (PP)', passType:'pp' },
-            { park:'TDL', type:'pass', area:'エントリー', name:'ショー・パレード (Entry)', passType:'entry' },
-            { park:'TDL', type:'pass', area:'エントリー', name:'グリーティング (Entry)', passType:'entry' },
-            { park:'TDL', type:'pass', area:'スタンバイパス', name:'アトラクション (SP)', passType:'sp' },
-            { park:'TDL', type:'pass', area:'スタンバイパス', name:'ショップ (SP)', passType:'sp' },
-            { park:'TDL', type:'pass', area:'スタンバイパス', name:'レストラン (SP)', passType:'sp' },
-            { park:'TDL', type:'rest', area:'休憩', name:'ベンチ / 日陰' },
-            { park:'TDL', type:'rest', area:'休憩', name:'パレード待ち' },
-
-            // --- TDS ---
-            { park:'TDS', type:'attraction', area:'メディテレーニアン', name:'ソアリン' },
-            { park:'TDS', type:'attraction', area:'メディテレーニアン', name:'ヴェネツィアン・ゴンドラ' },
-            { park:'TDS', type:'attraction', area:'メディテレーニアン', name:'トランジットスチーマー' },
-            { park:'TDS', type:'attraction', area:'メディテレーニアン', name:'フォートレス' },
-            { park:'TDS', type:'attraction', area:'アメフロ', name:'タワー・オブ・テラー' },
-            { park:'TDS', type:'attraction', area:'アメフロ', name:'トイ・ストーリー・マニア！' },
-            { park:'TDS', type:'attraction', area:'アメフロ', name:'タートル・トーク' },
-            { park:'TDS', type:'attraction', area:'アメフロ', name:'エレクトリックレールウェイ' },
-            { park:'TDS', type:'attraction', area:'アメフロ', name:'ビッグシティ・ヴィークル' },
-            { park:'TDS', type:'attraction', area:'ポート', name:'アクアトピア' },
-            { park:'TDS', type:'attraction', area:'ポート', name:'ニモ＆フレンズ' },
-            { park:'TDS', type:'attraction', area:'ロストリバー', name:'インディ・ジョーンズ' },
-            { park:'TDS', type:'attraction', area:'ロストリバー', name:'レイジングスピリッツ' },
-            { park:'TDS', type:'attraction', area:'アラビアン', name:'フライングカーペット' },
-            { park:'TDS', type:'attraction', area:'アラビアン', name:'シンドバッド' },
-            { park:'TDS', type:'attraction', area:'アラビアン', name:'マジックランプシアター' },
-            { park:'TDS', type:'attraction', area:'アラビアン', name:'キャラバンカルーセル' },
-            { park:'TDS', type:'attraction', area:'マーメイド', name:'ジャンピン・ジェリーフィッシュ' },
-            { park:'TDS', type:'attraction', area:'マーメイド', name:'フライングフィッシュ' },
-            { park:'TDS', type:'attraction', area:'マーメイド', name:'スカットルのスクーター' },
-            { park:'TDS', type:'attraction', area:'マーメイド', name:'ワールプール' },
-            { park:'TDS', type:'attraction', area:'マーメイド', name:'ブローフィッシュ・バルーンレース' },
-            { park:'TDS', type:'attraction', area:'マーメイド', name:'マーメイドラグーンシアター' },
-            { park:'TDS', type:'attraction', area:'ミステリアス', name:'センター・オブ・ジ・アース' },
-            { park:'TDS', type:'attraction', area:'ミステリアス', name:'海底2万マイル' },
-            { park:'TDS', type:'attraction', area:'FS', name:'アナとエルサのフローズンジャーニー' },
-            { park:'TDS', type:'attraction', area:'FS', name:'ラプンツェルのランタンフェスティバル' },
-            { park:'TDS', type:'attraction', area:'FS', name:'ピーターパンのネバーランド' },
-            { park:'TDS', type:'attraction', area:'FS', name:'ティンカーベルのビジーバギー' },
-            { park:'TDS', type:'show', area:'ショー・パレード', name:'ビリーヴ！' },
-            { park:'TDS', type:'show', area:'ショー・パレード', name:'ビッグバンドビート' },
-            { park:'TDS', type:'show', area:'ショー・パレード', name:'ダッフィー＆フレンズ' },
-            { park:'TDS', type:'greeting', area:'グリーティング', name:'ヴィレッジ・グリーティング' },
-            { park:'TDS', type:'greeting', area:'グリーティング', name:'サルードス・アミーゴス！' },
-            { park:'TDS', type:'greeting', area:'グリーティング', name:'ミッキー＆フレンズ・トレイル' },
-            { park:'TDS', type:'greeting', area:'グリーティング', name:'ディズニーシー・プラザ' },
-            { park:'TDS', type:'food', area:'レストラン', name:'マゼランズ' },
-            { park:'TDS', type:'food', area:'レストラン', name:'リストランテ・ディ・カナレット' },
-            { park:'TDS', type:'food', area:'レストラン', name:'カフェ・ポルトフィーノ' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ザンビーニ・ブラザーズ' },
-            { park:'TDS', type:'food', area:'レストラン', name:'マンマ・ビスコッティーズ・ベーカリー' },
-            { park:'TDS', type:'food', area:'レストラン', name:'S.S.コロンビア・ダイニング' },
-            { park:'TDS', type:'food', area:'レストラン', name:'レストラン櫻' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ニューヨーク・デリ' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ケープコッド・クックオフ' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ドックサイドダイナー' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ホライズンベイ・レストラン' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ユカタン・ベースキャンプ' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ミゲルズ・エルドラド・キャンティーナ' },
-            { park:'TDS', type:'food', area:'レストラン', name:'カスバ・フードコート' },
-            { park:'TDS', type:'food', area:'レストラン', name:'セバスチャンのカリプソキッチン' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ヴォルケイニア・レストラン' },
-            { park:'TDS', type:'food', area:'レストラン', name:'アレンデール・ロイヤルバンケット' },
-            { park:'TDS', type:'food', area:'レストラン', name:'ルックアウト・クックアウト' },
-            { park:'TDS', type:'food', area:'レストラン', name:'スナグリーダックリング' },
-            { park:'TDS', type:'food', area:'ワゴン', name:'各地ポップコーン' },
-            { park:'TDS', type:'food', area:'ワゴン', name:'各地チュロス / スナック' },
-            { park:'TDS', type:'food', area:'ワゴン', name:'うきわまん / ギョウザドッグ' },
-            { park:'TDS', type:'shop', area:'ショップ', name:'エンポーリオ' },
-            { park:'TDS', type:'shop', area:'ショップ', name:'ガッレリーア・ディズニー' },
-            { park:'TDS', type:'shop', area:'ショップ', name:'マクダックス・デパートメントストア' },
-            { park:'TDS', type:'shop', area:'ショップ', name:'アーント・ペグズ・ヴィレッジストア' },
-            { park:'TDS', type:'shop', area:'ショップ', name:'アグラバーマーケットプレイス' },
-            { park:'TDS', type:'shop', area:'ショップ', name:'ファンタジースプリングス・ギフト' },
-            // ここ！typeをすべて'pass'に統一しました
-            { park:'TDS', type:'pass', area:'DPA', name:'ソアリン (DPA)', price:2000, passType:'dpa' },
-            { park:'TDS', type:'pass', area:'DPA', name:'トイマニ (DPA)', price:2000, passType:'dpa' },
-            { park:'TDS', type:'pass', area:'DPA', name:'タワテラ (DPA)', price:1500, passType:'dpa' },
-            { park:'TDS', type:'pass', area:'DPA', name:'センター (DPA)', price:1500, passType:'dpa' },
-            { park:'TDS', type:'pass', area:'DPA', name:'アナ雪 (DPA)', price:2000, passType:'dpa' },
-            { park:'TDS', type:'pass', area:'DPA', name:'ラプンツェル (DPA)', price:2000, passType:'dpa' },
-            { park:'TDS', type:'pass', area:'DPA', name:'ピーターパン (DPA)', price:2000, passType:'dpa' },
-            { park:'TDS', type:'pass', area:'DPA(Show)', name:'ビリーヴ！ (DPA)', price:2500, passType:'dpa' },
-            { park:'TDS', type:'pass', area:'DPA(Show)', name:'ダンス・ザ・グローブ！ (DPA)', price:2500 },
-            { park:'TDS', type:'pass', area:'DPA(Show)', name:'ドリームス・テイク・フライト(DPA)', price:2500 },
-            { park:'TDS', type:'pass', area:'PP(無料)', name:'インディ (PP)', passType:'pp' },
-            { park:'TDS', type:'pass', area:'PP(無料)', name:'レイジング (PP)', passType:'pp' },
-            { park:'TDS', type:'pass', area:'PP(無料)', name:'マジックランプ (PP)', passType:'pp' },
-            { park:'TDS', type:'pass', area:'PP(無料)', name:'ニモ＆フレンズ (PP)', passType:'pp' },
-            { park:'TDS', type:'pass', area:'PP(無料)', name:'タートル・トーク (PP)', passType:'pp' },
-            { park:'TDS', type:'pass', area:'PP(無料)', name:'アクアトピア (PP)', passType:'pp' },
-            { park:'TDS', type:'pass', area:'エントリー', name:'ダンス・ザ・グローブ！', passType:'entry' },
-            { park:'TDS', type:'pass', area:'エントリー', name:'ドリームス・テイク・フライト', passType:'entry' },
-            { park:'TDS', type:'pass', area:'スタンバイパス', name:'アトラクション (SP)', passType:'sp' },
-            { park:'TDS', type:'pass', area:'スタンバイパス', name:'ショップ (SP)', passType:'sp' },
-            { park:'TDS', type:'pass', area:'スタンバイパス', name:'レストラン (SP)', passType:'sp' },
-            { park:'TDS', type:'rest', area:'休憩', name:'ベンチ／テラス' },
-            { park:'TDS', type:'rest', area:'休憩', name:'その辺' }
+            { park:'TDL', type:'attraction', area:'アドベンチャー', name:'カリブの海賊' }, { park:'TDL', type:'attraction', area:'アドベンチャー', name:'ジャングルクルーズ' }, { park:'TDL', type:'attraction', area:'ウエスタン', name:'ビッグサンダー・マウンテン' }, { park:'TDL', type:'attraction', area:'クリッター', name:'スプラッシュ・マウンテン' }, { park:'TDL', type:'attraction', area:'ファンタジー', name:'美女と野獣“魔法のものがたり”' }, { park:'TDL', type:'attraction', area:'ファンタジー', name:'プーさんのハニーハント' }, { park:'TDL', type:'attraction', area:'ファンタジー', name:'ホーンテッドマンション' }, { park:'TDL', type:'attraction', area:'ファンタジー', name:'ピーターパン空の旅' }, { park:'TDL', type:'attraction', area:'トゥモロー', name:'ベイマックスのハッピーライド' }, { park:'TDL', type:'attraction', area:'トゥモロー', name:'スター・ツアーズ' }, { park:'TDL', type:'attraction', area:'トゥモロー', name:'モンスターズ・インク' },
+            { park:'TDL', type:'show', area:'ショー・パレード', name:'ハーモニー・イン・カラー' }, { park:'TDL', type:'show', area:'ショー・パレード', name:'エレクトリカルパレード' }, { park:'TDL', type:'show', area:'ショー・パレード', name:'Reach for the Stars' }, { park:'TDL', type:'show', area:'ショー・パレード', name:'クラブマウスビート' },
+            { park:'TDL', type:'greeting', area:'グリーティング', name:'ミート・ミッキー' }, { park:'TDL', type:'greeting', area:'グリーティング', name:'ミニーのスタイルスタジオ' },
+            { park:'TDL', type:'food', area:'レストラン', name:'センターストリート・コーヒーハウス' }, { park:'TDL', type:'food', area:'レストラン', name:'れすとらん北齋' }, { park:'TDL', type:'food', area:'レストラン', name:'ブルーバイユー・レストラン' }, { park:'TDL', type:'food', area:'レストラン', name:'チャイナボイジャー' }, { park:'TDL', type:'food', area:'レストラン', name:'ハングリーベア・レストラン' }, { park:'TDL', type:'food', area:'レストラン', name:'グランマ・サラのキッチン' }, { park:'TDL', type:'food', area:'レストラン', name:'クイーン・オブ・ハート' }, { park:'TDL', type:'food', area:'レストラン', name:'ガストン' }, { park:'TDL', type:'food', area:'レストラン', name:'プラズマ・レイズ・ダイナー' }, { park:'TDL', type:'food', area:'ワゴン', name:'各地ポップコーン' }, { park:'TDL', type:'food', area:'ワゴン', name:'各地チュロス / スナック' },
+            { park:'TDL', type:'shop', area:'ショップ', name:'グランドエンポーリアム' }, { park:'TDL', type:'shop', area:'ショップ', name:'ワールドバザール・コンフェクショナリー' }, { park:'TDL', type:'shop', area:'ショップ', name:'タウンセンターファッション' }, { park:'TDL', type:'shop', area:'ショップ', name:'マジックショップ' }, { park:'TDL', type:'shop', area:'ショップ', name:'ホームストア' }, { park:'TDL', type:'shop', area:'ショップ', name:'トイ・ステーション' }, { park:'TDL', type:'shop', area:'ショップ', name:'ガラスの靴' }, { park:'TDL', type:'shop', area:'ショップ', name:'プーさんコーナー' }, { park:'TDL', type:'shop', area:'ショップ', name:'ビレッジショップス' }, { park:'TDL', type:'shop', area:'ショップ', name:'ギャグファクトリー' }, { park:'TDL', type:'shop', area:'ショップ', name:'プラネットM' }, { park:'TDL', type:'shop', area:'ショップ', name:'トレジャーコメット' },
+            { park:'TDL', type:'pass', area:'DPA(有料)', name:'美女と野獣 (DPA)', price:2000, passType:'dpa' }, { park:'TDL', type:'pass', area:'DPA(有料)', name:'ベイマックス (DPA)', price:1500, passType:'dpa' }, { park:'TDL', type:'pass', area:'DPA(有料)', name:'スプラッシュ (DPA)', price:1500, passType:'dpa' }, { park:'TDL', type:'pass', area:'DPA(有料)', name:'Reach for the Stars (DPA)', price:2500, passType:'dpa' }, { park:'TDL', type:'pass', area:'DPA(有料)', name:'ハモカラ (DPA)', price:2500, passType:'dpa' }, { park:'TDL', type:'pass', area:'DPA(有料)', name:'エレパレ (DPA)', price:2500, passType:'dpa' }, { park:'TDL', type:'pass', area:'PP(無料)', name:'ホーンテッド (PP)', passType:'pp' }, { park:'TDL', type:'pass', area:'PP(無料)', name:'プーさん (PP)', passType:'pp' }, { park:'TDL', type:'pass', area:'PP(無料)', name:'モンスターズ (PP)', passType:'pp' }, { park:'TDL', type:'pass', area:'PP(無料)', name:'スターツアーズ (PP)', passType:'pp' }, { park:'TDL', type:'pass', area:'PP(無料)', name:'スペースマウンテン (PP)', passType:'pp' }, { park:'TDL', type:'pass', area:'エントリー', name:'ショー・パレード (Entry)', passType:'entry' }, { park:'TDL', type:'pass', area:'エントリー', name:'グリーティング (Entry)', passType:'entry' }, { park:'TDL', type:'pass', area:'スタンバイパス', name:'アトラクション (SP)', passType:'sp' }, { park:'TDL', type:'pass', area:'スタンバイパス', name:'ショップ (SP)', passType:'sp' }, { park:'TDL', type:'pass', area:'スタンバイパス', name:'レストラン (SP)', passType:'sp' }, { park:'TDL', type:'rest', area:'休憩', name:'ベンチ / 日陰' }, { park:'TDL', type:'rest', area:'休憩', name:'パレード待ち' },
+            { park:'TDS', type:'attraction', area:'メディテレーニアン', name:'ソアリン' }, { park:'TDS', type:'attraction', area:'メディテレーニアン', name:'ヴェネツィアン・ゴンドラ' }, { park:'TDS', type:'attraction', area:'アメフロ', name:'タワー・オブ・テラー' }, { park:'TDS', type:'attraction', area:'アメフロ', name:'トイ・ストーリー・マニア！' }, { park:'TDS', type:'attraction', area:'アメフロ', name:'タートル・トーク' }, { park:'TDS', type:'attraction', area:'ポート', name:'ニモ＆フレンズ' }, { park:'TDS', type:'attraction', area:'ロストリバー', name:'インディ・ジョーンズ' }, { park:'TDS', type:'attraction', area:'ロストリバー', name:'レイジングスピリッツ' }, { park:'TDS', type:'attraction', area:'アラビアン', name:'マジックランプシアター' }, { park:'TDS', type:'attraction', area:'ミステリアス', name:'センター・オブ・ジ・アース' }, { park:'TDS', type:'attraction', area:'ミステリアス', name:'海底2万マイル' }, { park:'TDS', type:'attraction', area:'FS', name:'アナとエルサのフローズンジャーニー' }, { park:'TDS', type:'attraction', area:'FS', name:'ラプンツェルのランタンフェスティバル' }, { park:'TDS', type:'attraction', area:'FS', name:'ピーターパンのネバーランド' }, { park:'TDS', type:'attraction', area:'FS', name:'ティンカーベルのビジーバギー' },
+            { park:'TDS', type:'show', area:'ショー・パレード', name:'ビリーヴ！' }, { park:'TDS', type:'show', area:'ショー・パレード', name:'ビッグバンドビート' }, { park:'TDS', type:'greeting', area:'グリーティング', name:'ヴィレッジ・グリーティング' }, { park:'TDS', type:'greeting', area:'グリーティング', name:'ミッキー＆フレンズ・トレイル' },
+            { park:'TDS', type:'food', area:'レストラン', name:'マゼランズ' }, { park:'TDS', type:'food', area:'レストラン', name:'リストランテ・ディ・カナレット' }, { park:'TDS', type:'food', area:'レストラン', name:'カフェ・ポルトフィーノ' }, { park:'TDS', type:'food', area:'レストラン', name:'ザンビーニ・ブラザーズ' }, { park:'TDS', type:'food', area:'レストラン', name:'S.S.コロンビア・ダイニング' }, { park:'TDS', type:'food', area:'レストラン', name:'レストラン櫻' }, { park:'TDS', type:'food', area:'レストラン', name:'ニューヨーク・デリ' }, { park:'TDS', type:'food', area:'レストラン', name:'ケープコッド・クックオフ' }, { park:'TDS', type:'food', area:'レストラン', name:'ホライズンベイ・レストラン' }, { park:'TDS', type:'food', area:'レストラン', name:'ユカタン・ベースキャンプ' }, { park:'TDS', type:'food', area:'レストラン', name:'カスバ・フードコート' }, { park:'TDS', type:'food', area:'レストラン', name:'ヴォルケイニア・レストラン' }, { park:'TDS', type:'food', area:'レストラン', name:'アレンデール・ロイヤルバンケット' }, { park:'TDS', type:'food', area:'レストラン', name:'ルックアウト・クックアウト' }, { park:'TDS', type:'food', area:'ワゴン', name:'各地ポップコーン' }, { park:'TDS', type:'food', area:'ワゴン', name:'うきわまん / ギョウザドッグ' },
+            { park:'TDS', type:'shop', area:'ショップ', name:'エンポーリオ' }, { park:'TDS', type:'shop', area:'ショップ', name:'ガッレリーア・ディズニー' }, { park:'TDS', type:'shop', area:'ショップ', name:'マクダックス・デパートメントストア' }, { park:'TDS', type:'shop', area:'ショップ', name:'アーント・ペグズ・ヴィレッジストア' }, { park:'TDS', type:'shop', area:'ショップ', name:'アグラバーマーケットプレイス' }, { park:'TDS', type:'shop', area:'ショップ', name:'ファンタジースプリングス・ギフト' },
+            { park:'TDS', type:'pass', area:'DPA(有料)', name:'ソアリン (DPA)', price:2000, passType:'dpa' }, { park:'TDS', type:'pass', area:'DPA(有料)', name:'トイマニ (DPA)', price:2000, passType:'dpa' }, { park:'TDS', type:'pass', area:'DPA(有料)', name:'タワテラ (DPA)', price:1500, passType:'dpa' }, { park:'TDS', type:'pass', area:'DPA(有料)', name:'センター (DPA)', price:1500, passType:'dpa' }, { park:'TDS', type:'pass', area:'DPA(有料)', name:'アナ雪 (DPA)', price:2000, passType:'dpa' }, { park:'TDS', type:'pass', area:'DPA(有料)', name:'ラプンツェル (DPA)', price:2000, passType:'dpa' }, { park:'TDS', type:'pass', area:'DPA(有料)', name:'ピーターパン (DPA)', price:2000, passType:'dpa' }, { park:'TDS', type:'pass', area:'DPA(有料)', name:'ビリーヴ！ (DPA)', price:2500, passType:'dpa' }, { park:'TDS', type:'pass', area:'PP(無料)', name:'インディ (PP)', passType:'pp' }, { park:'TDS', type:'pass', area:'PP(無料)', name:'レイジング (PP)', passType:'pp' }, { park:'TDS', type:'pass', area:'PP(無料)', name:'マジックランプ (PP)', passType:'pp' }, { park:'TDS', type:'pass', area:'PP(無料)', name:'ニモ＆フレンズ (PP)', passType:'pp' }, { park:'TDS', type:'pass', area:'PP(無料)', name:'タートル・トーク (PP)', passType:'pp' }, { park:'TDS', type:'pass', area:'PP(無料)', name:'アクアトピア (PP)', passType:'pp' }, { park:'TDS', type:'pass', area:'エントリー', name:'ショー・パレード (Entry)', passType:'entry' }, { park:'TDS', type:'pass', area:'エントリー', name:'グリーティング (Entry)', passType:'entry' }, { park:'TDS', type:'pass', area:'スタンバイパス', name:'アトラクション (SP)', passType:'sp' }, { park:'TDS', type:'pass', area:'スタンバイパス', name:'ショップ (SP)', passType:'sp' }, { park:'TDS', type:'pass', area:'スタンバイパス', name:'レストラン (SP)', passType:'sp' }, { park:'TDS', type:'rest', area:'休憩', name:'ベンチ / テラス' }, { park:'TDS', type:'rest', area:'休憩', name:'フォートレス付近' }
         ];
 
         // ==========================================
@@ -387,38 +282,33 @@
         let currentPark = 'TDL'; let currentRecord = null; let timerId = null; let history = []; let costHistory = []; let totalCost = 0; let budget = 30000; let dailyMemo = ""; let isInPark = false;
         let targetDateStr = "2026-06-01T08:00:00"; let targetFund = 100000; let currentFund = 0; let fundHistory = []; let preParkTweets = [];
         let dpaCooldownTime = null; let ppCooldownTime = null; let sortableTimeline = null;
+        let conditionItems = [ {id:1, text:"16h Fasting (Lean Gains)", checked:false}, {id:2, text:"Morning Workout", checked:false}, {id:3, text:"Mental Clear", checked:false} ];
+        let loadoutLimit = 2000; let loadoutItems = [ {id:1, name:'RICOH GR IIIx', weight:262} ];
+        let tacticalItems = [];
 
         const haptic = p => navigator.vibrate && navigator.vibrate(p);
         const getCurrentTime = () => { const d=new Date(); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+        const getCurrentDateAndTimeString = () => { const d=new Date(); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
         
         function saveData(){
-            localStorage.setItem('extremeDisneyData', JSON.stringify({
-                history, costHistory, totalCost, budget, dailyMemo, isInPark, targetDateStr, targetFund, currentFund, fundHistory, preParkTweets,
-                dpaCooldownTime: dpaCooldownTime ? dpaCooldownTime.getTime() : null,
-                ppCooldownTime: ppCooldownTime ? ppCooldownTime.getTime() : null
-            }));
+            localStorage.setItem('extremeDisneyData', JSON.stringify({ history, costHistory, totalCost, budget, dailyMemo, isInPark, targetDateStr, targetFund, currentFund, fundHistory, preParkTweets, dpaCooldownTime: dpaCooldownTime?.getTime(), ppCooldownTime: ppCooldownTime?.getTime(), conditionItems, loadoutLimit, loadoutItems, tacticalItems }));
         }
 
         // ==========================================
-        // 3. メインモード切替 (Pre-Park <-> In-Park)
+        // 3. UIモード切り替え
         // ==========================================
-        function toggleParkInOut(){
-            haptic([15,40,15]); isInPark = !isInPark; applyModeUI();
-            addTimelineHistory(isInPark ? `インパーク (${currentPark})` : `アウトパーク (${currentPark})`, getCurrentTime(), getCurrentTime(), '---', 'info');
-            saveData();
-        }
-
+        function toggleParkInOut(){ haptic([15,40,15]); isInPark = !isInPark; applyModeUI(); addTimelineHistory(isInPark?`インパーク (${currentPark})`:`アウトパーク (${currentPark})`, getCurrentTime(), getCurrentTime(), '---', 'info'); saveData(); }
         function applyModeUI(){
             const btn = document.getElementById('park-status-btn');
-            document.getElementById('pre-park-dashboard').classList.toggle('hidden', isInPark);
-            document.getElementById('in-park-dashboard').classList.toggle('hidden', !isInPark);
+            document.getElementById('pre-park-dashboard').classList.toggle('hidden', isInPark); document.getElementById('pre-park-dashboard').classList.toggle('flex', !isInPark);
+            document.getElementById('in-park-dashboard').classList.toggle('hidden', !isInPark); document.getElementById('in-park-dashboard').classList.toggle('flex', isInPark);
             document.getElementById('current-park-display').classList.toggle('opacity-0', !isInPark);
             btn.innerText = isInPark ? "OUT PARK" : "IN PARK";
             btn.className = `px-3 py-2 rounded-lg text-[9px] font-bold tomorrow-font uppercase tracking-widest transition-colors ${isInPark ? 'border-emerald-500 bg-emerald-900/40 text-emerald-400' : 'border-blue-500 bg-blue-900/40 text-blue-300'}`;
         }
 
         // ==========================================
-        // 4. パス・クールダウンロジック
+        // 4. パス・クールダウン
         // ==========================================
         function startCooldown(type){
             const now = new Date();
@@ -426,63 +316,29 @@
             if(type === 'pp')  ppCooldownTime = new Date(now.getTime() + 120 * 60000);
             saveData(); updateCooldownDisplay();
         }
-
         function updateCooldownDisplay(){
             const now = new Date(); let anyActive = false;
             const db = document.getElementById('dpa-timer-block'), pb = document.getElementById('pp-timer-block');
-            
-            if(dpaCooldownTime && dpaCooldownTime > now){
-                anyActive = true; db.classList.remove('hidden'); const diff = dpaCooldownTime - now;
-                document.getElementById('dpa-timer-text').innerText = `${Math.floor(diff/60000)}:${String(Math.floor((diff%60000)/1000)).padStart(2,'0')}`;
-                document.getElementById('dpa-timer-bar').style.width = `${(diff/3600000)*100}%`;
-            } else { db.classList.add('hidden'); dpaCooldownTime = null; }
-            
-            if(ppCooldownTime && ppCooldownTime > now){
-                anyActive = true; pb.classList.remove('hidden'); const diff = ppCooldownTime - now;
-                document.getElementById('pp-timer-text').innerText = `${Math.floor(diff/60000)}:${String(Math.floor((diff%60000)/1000)).padStart(2,'0')}`;
-                document.getElementById('pp-timer-bar').style.width = `${(diff/7200000)*100}%`;
-            } else { pb.classList.add('hidden'); ppCooldownTime = null; }
-            
+            if(dpaCooldownTime && dpaCooldownTime > now){ anyActive = true; db.classList.remove('hidden'); const diff = dpaCooldownTime - now; document.getElementById('dpa-timer-text').innerText = `${Math.floor(diff/60000)}:${String(Math.floor((diff%60000)/1000)).padStart(2,'0')}`; document.getElementById('dpa-timer-bar').style.width = `${(diff/3600000)*100}%`; } else { db.classList.add('hidden'); dpaCooldownTime = null; }
+            if(ppCooldownTime && ppCooldownTime > now){ anyActive = true; pb.classList.remove('hidden'); const diff = ppCooldownTime - now; document.getElementById('pp-timer-text').innerText = `${Math.floor(diff/60000)}:${String(Math.floor((diff%60000)/1000)).padStart(2,'0')}`; document.getElementById('pp-timer-bar').style.width = `${(diff/7200000)*100}%`; } else { pb.classList.add('hidden'); ppCooldownTime = null; }
             document.getElementById('cooldown-container').classList.toggle('hidden', !anyActive);
         }
-
-        function markPassUsed(id, type){
-            haptic(30); const log = history.find(h => h.id === id);
-            if(log){
-                log.passUsed = true;
-                if(type === 'dpa') dpaCooldownTime = null;
-                if(type === 'pp') ppCooldownTime = null;
-                saveData(); renderTimeline(); updateCooldownDisplay();
-            }
-        }
+        function markPassUsed(id, type){ haptic(30); const log = history.find(h => h.id === id); if(log){ log.passUsed = true; if(type === 'dpa') dpaCooldownTime = null; if(type === 'pp') ppCooldownTime = null; saveData(); renderTimeline(); updateCooldownDisplay(); } }
 
         // ==========================================
-        // 5. モーダル / カテゴリー選択
+        // 5. カテゴリー & モーダル
         // ==========================================
         function openCategory(type){
-            haptic(10); const content = document.getElementById('modal-content');
-            document.getElementById('modal-title').innerText = type.toUpperCase(); content.innerHTML = '';
-            const filtered = masterData.filter(d => d.park === currentPark && d.type === type);
-            const groups = filtered.reduce((a, o) => { (a[o.area] = a[o.area] || []).push(o); return a; }, {});
-            
+            haptic(10); const content = document.getElementById('modal-content'); document.getElementById('modal-title').innerText = type.toUpperCase(); content.innerHTML = '';
+            const filtered = masterData.filter(d => d.park === currentPark && d.type === type); const groups = filtered.reduce((a, o) => { (a[o.area] = a[o.area] || []).push(o); return a; }, {});
             for(const area in groups){
                 const div = document.createElement('div'); div.innerHTML = `<h3 class="text-[8px] text-slate-500 mb-2 font-bold uppercase tracking-widest">>>> ${area}</h3>`;
                 const grid = document.createElement('div'); grid.className = "grid grid-cols-2 gap-2 mb-4 w-full";
                 groups[area].forEach(spot => {
                     const held = spot.passType === 'dpa' && history.some(h => h.name.includes(spot.name) && !h.passUsed);
-                    const btn = document.createElement('button');
-                    btn.className = `glass-panel rounded-xl text-white rect-btn p-2 w-full ${held ? 'opacity-20 pointer-events-none' : 'active:bg-cyan-900'}`;
+                    const btn = document.createElement('button'); btn.className = `glass-panel rounded-xl text-white rect-btn p-2 w-full ${held ? 'opacity-20 pointer-events-none' : 'active:bg-cyan-900'}`;
                     btn.innerHTML = `<span class="truncate w-full">${spot.name}</span>${spot.price ? `<span class="text-yellow-400 text-[9px] mt-1">¥${spot.price}</span>` : ''}`;
-                    btn.onclick = () => {
-                        closeModal(); haptic(15);
-                        if(spot.passType){
-                            const time = getCurrentTime();
-                            const log = addTimelineHistory(`取得: ${spot.name}`, time, time, spot.price ? `¥${spot.price}` : '---', spot.price ? 'cost' : 'info');
-                            log.passType = spot.passType; log.passUsed = false;
-                            if(spot.price) addCost(spot.name, spot.price, time);
-                            if(spot.passType === 'dpa' || spot.passType === 'pp') startCooldown(spot.passType);
-                        } else { startRecording(spot); }
-                    };
+                    btn.onclick = () => { closeModal(); haptic(15); if(spot.passType){ const time = getCurrentTime(); const log = addTimelineHistory(`取得: ${spot.name}`, time, time, spot.price ? `¥${spot.price}` : '---', spot.price ? 'cost' : 'info'); log.passType = spot.passType; log.passUsed = false; if(spot.price) addCost(spot.name, spot.price, time); if(spot.passType === 'dpa' || spot.passType === 'pp') startCooldown(spot.passType); } else { startRecording(spot); } };
                     grid.appendChild(btn);
                 });
                 div.appendChild(grid); content.appendChild(div);
@@ -493,35 +349,15 @@
         // ==========================================
         // 6. タイムライン機能
         // ==========================================
-        function addTimelineHistory(name, start, end, duration, status){
-            const log = { id: Date.now(), name, start, end, duration, status, memo: '', passType: null, passUsed: false };
-            history.push(log); saveData(); renderTimeline(true); return log;
-        }
-
+        function addTimelineHistory(name, start, end, duration, status){ const log = { id: Date.now(), name, start, end, duration, status, memo: '', passType: null, passUsed: false }; history.push(log); saveData(); renderTimeline(true); return log; }
         function renderTimeline(scroll = false){
             const list = document.getElementById('timeline-list'); list.innerHTML = '';
             if(history.length === 0){ list.innerHTML = '<div class="text-center py-10"><p class="text-[9px] text-slate-600 tomorrow-font tracking-widest italic uppercase">Waiting for input...</p></div>'; }
             history.forEach((h, i) => {
                 const div = document.createElement('div'); div.className = "flex justify-between items-start glass-panel p-3 rounded-xl border-l-2 border-cyan-400 w-full";
                 const isTimeRange = h.status === 'active' || h.status === 'finished';
-                const usedBtn = (h.passType && (h.passType==='dpa'||h.passType==='pp') && !h.passUsed) 
-                    ? `<button onclick="markPassUsed(${h.id},'${h.passType}')" class="mt-2 bg-cyan-900/50 border border-cyan-500 text-cyan-100 text-[8px] px-2 py-1 rounded font-bold uppercase active:bg-cyan-700 transition-colors">Mark as Used</button>` 
-                    : (h.passUsed ? `<span class="mt-2 block text-[8px] text-slate-500 uppercase font-bold italic">Passed/Used</span>` : '');
-                
-                div.innerHTML = `
-                    <div class="flex-[3] pr-2 min-w-0">
-                        <p class="text-base font-bold ${h.status === 'active' ? 'text-red-400 animate-pulse' : 'text-white'} truncate">${h.name}</p>
-                        <p class="tomorrow-font text-base text-slate-400 uppercase mt-1 cursor-pointer truncate" onclick="openEditTimeModal(${i})">
-                            T-MARK: <span class="text-cyan-300 underline">${h.start}</span> ${isTimeRange ? `〜 <span class="text-cyan-300 underline">${h.end}</span>` : ''} <span class="ml-1 text-cyan-600 text-sm">✎</span>
-                        </p>
-                        ${usedBtn}
-                        <input type="text" placeholder="Add memo..." value="${h.memo}" onchange="history[${i}].memo=this.value;saveData();" class="bg-transparent border-b border-slate-700 tomorrow-font tracking-widest text-cyan-100 w-full mt-1.5 pb-0.5 outline-none focus:border-cyan-400" style="font-size: 10px !important;">
-                    </div>
-                    <div class="flex-1 flex flex-col items-end gap-1 mt-0.5 min-w-[50px]">
-                        <button onclick="deleteLog(${i})" class="w-6 h-6 rounded bg-red-950/30 text-red-500 text-xs flex items-center justify-center">×</button>
-                        <p class="tomorrow-font text-sm text-cyan-400 font-bold mt-1 tracking-wider whitespace-nowrap text-right" id="duration-${h.id}">${h.duration}</p>
-                    </div>
-                `;
+                const usedBtn = (h.passType && (h.passType==='dpa'||h.passType==='pp') && !h.passUsed) ? `<button onclick="markPassUsed(${h.id},'${h.passType}')" class="mt-2 bg-cyan-900/50 border border-cyan-500 text-cyan-100 text-[8px] px-2 py-1 rounded font-bold uppercase active:bg-cyan-700 transition-colors">Mark as Used</button>` : (h.passUsed ? `<span class="mt-2 block text-[8px] text-slate-500 uppercase font-bold italic">Passed/Used</span>` : '');
+                div.innerHTML = `<div class="flex-[3] pr-2 min-w-0"><p class="text-base font-bold ${h.status === 'active' ? 'text-red-400 animate-pulse' : 'text-white'} truncate">${h.name}</p><p class="tomorrow-font text-base text-slate-400 uppercase mt-1 cursor-pointer truncate" onclick="openEditTimeModal(${i})">T-MARK: <span class="text-cyan-300 underline">${h.start}</span> ${isTimeRange ? `〜 <span class="text-cyan-300 underline">${h.end}</span>` : ''} <span class="ml-1 text-cyan-600 text-sm">✎</span></p>${usedBtn}<input type="text" placeholder="Add memo..." value="${h.memo}" onchange="history[${i}].memo=this.value;saveData();" class="bg-transparent border-b border-slate-700 tomorrow-font tracking-widest text-cyan-100 w-full mt-1.5 pb-0.5 outline-none focus:border-cyan-400" style="font-size: 10px !important;"></div><div class="flex-1 flex flex-col items-end gap-1 mt-0.5 min-w-[50px]"><button onclick="deleteLog(${i})" class="w-6 h-6 rounded bg-red-950/30 text-red-500 text-xs flex items-center justify-center">×</button><p class="tomorrow-font text-sm text-cyan-400 font-bold mt-1 tracking-wider whitespace-nowrap text-right" id="duration-${h.id}">${h.duration}</p></div>`;
                 list.appendChild(div);
             });
             document.getElementById('log-count').innerText = `${history.length} LOGS`;
@@ -529,93 +365,72 @@
             sortableTimeline = new Sortable(list, { delay: 200, animation: 150, ghostClass: 'opacity-30', onEnd: () => { saveData(); renderTimeline(); } });
             if(scroll) setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 50);
         }
-
         function deleteLog(i){ if(confirm("DELETE THIS LOG?")){ history.splice(i,1); saveData(); renderTimeline(); } }
 
         function startRecording(spot){
             haptic(20); if(currentRecord) stopRecording(); const now = new Date(), time = getCurrentTime();
             currentRecord = { ...spot, startTimeObj: now };
-            document.getElementById('active-name').innerText = spot.name; document.getElementById('recording-overlay').classList.remove('hidden');
+            document.getElementById('active-name').innerText = spot.name; document.getElementById('recording-overlay').classList.remove('hidden'); document.getElementById('recording-overlay').classList.add('flex');
             const liveArea = document.getElementById('live-cost-input-area');
-            if(spot.type === 'shop' || spot.type === 'food'){
-                liveArea.classList.remove('hidden'); liveArea.classList.add('flex');
-                document.getElementById('live-item-cost').value = ''; document.getElementById('live-item-cost').disabled = false;
-                const btn = document.getElementById('live-cost-save-btn'); btn.innerText = 'Save'; btn.disabled = false; btn.className = 'flex-1 bg-yellow-500 text-black font-bold py-2 px-2 rounded-xl text-sm uppercase min-w-[70px]';
-            } else { liveArea.classList.remove('flex'); liveArea.classList.add('hidden'); }
+            if(spot.type === 'shop' || spot.type === 'food'){ liveArea.classList.remove('hidden'); liveArea.classList.add('flex'); document.getElementById('live-item-cost').value = ''; document.getElementById('live-item-cost').disabled = false; const btn = document.getElementById('live-cost-save-btn'); btn.innerText = 'Save'; btn.disabled = false; btn.className = 'flex-1 bg-yellow-500 text-black font-bold py-2 px-2 rounded-xl text-sm uppercase min-w-[70px]'; } else { liveArea.classList.remove('flex'); liveArea.classList.add('hidden'); }
             currentRecord.tlRef = addTimelineHistory(spot.name, time, '---', '00:00:00', 'active');
             if(timerId) clearInterval(timerId); timerId = setInterval(updateActiveTimer, 1000);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
-        function updateActiveTimer(){
-            if(!currentRecord) return; const diff = Math.floor((new Date() - currentRecord.startTimeObj) / 1000);
-            const f = `${String(Math.floor(diff/3600)).padStart(2,'0')}:${String(Math.floor((diff%3600)/60)).padStart(2,'0')}:${String(diff%60).padStart(2,'0')}` + (currentRecord.savedCost ? ` / ¥${currentRecord.savedCost}` : '');
-            document.getElementById('active-timer').innerText = f;
-            const tl = document.getElementById(`duration-${currentRecord.tlRef.id}`); if(tl) tl.innerText = f;
-        }
-
-        function stopRecording(){
-            if(!currentRecord) return; haptic(30); const diff = Math.floor((new Date() - currentRecord.startTimeObj) / 1000);
-            currentRecord.tlRef.end = getCurrentTime();
-            currentRecord.tlRef.duration = `${Math.floor(diff/60)}m ${diff%60}s` + (currentRecord.savedCost ? ` / ¥${currentRecord.savedCost}` : '');
-            currentRecord.tlRef.status = 'finished';
-            saveData(); clearInterval(timerId); currentRecord = null; document.getElementById('recording-overlay').classList.add('hidden'); renderTimeline();
-        }
-
-        function saveLiveCost(){
-            const v = parseInt(document.getElementById('live-item-cost').value);
-            if(v > 0){
-                addCost(currentRecord.name, v, currentRecord.tlRef.start); currentRecord.savedCost = v;
-                const b = document.getElementById('live-cost-save-btn'); b.innerText = 'Saved'; b.disabled = true; b.className = 'flex-1 bg-slate-600 text-slate-400 font-bold py-2 px-2 rounded-xl text-sm uppercase min-w-[70px]'; document.getElementById('live-item-cost').disabled = true;
-            }
-        }
+        function updateActiveTimer(){ if(!currentRecord) return; const diff = Math.floor((new Date() - currentRecord.startTimeObj) / 1000); const f = `${String(Math.floor(diff/3600)).padStart(2,'0')}:${String(Math.floor((diff%3600)/60)).padStart(2,'0')}:${String(diff%60).padStart(2,'0')}` + (currentRecord.savedCost ? ` / ¥${currentRecord.savedCost}` : ''); document.getElementById('active-timer').innerText = f; const tl = document.getElementById(`duration-${currentRecord.tlRef.id}`); if(tl) tl.innerText = f; }
+        function stopRecording(){ if(!currentRecord) return; haptic(30); const diff = Math.floor((new Date() - currentRecord.startTimeObj) / 1000); currentRecord.tlRef.end = getCurrentTime(); currentRecord.tlRef.duration = `${Math.floor(diff/60)}m ${diff%60}s` + (currentRecord.savedCost ? ` / ¥${currentRecord.savedCost}` : ''); currentRecord.tlRef.status = 'finished'; saveData(); clearInterval(timerId); currentRecord = null; document.getElementById('recording-overlay').classList.add('hidden'); document.getElementById('recording-overlay').classList.remove('flex'); renderTimeline(); }
+        function saveLiveCost(){ const v = parseInt(document.getElementById('live-item-cost').value); if(v > 0){ addCost(currentRecord.name, v, currentRecord.tlRef.start); currentRecord.savedCost = v; const b = document.getElementById('live-cost-save-btn'); b.innerText = 'Saved'; b.disabled = true; b.className = 'flex-1 bg-slate-600 text-slate-400 font-bold py-2 px-2 rounded-xl text-sm uppercase min-w-[70px]'; document.getElementById('live-item-cost').disabled = true; } }
 
         // ==========================================
-        // 7. コスト＆プレパーク機能
+        // 7. プレパーク機能 (Weather, Readiness, Loadout, Tactical, Funds)
         // ==========================================
-        function initFundSelect(){
-            const sel = document.getElementById('fund-input-amount'); sel.innerHTML = '<option value="" disabled selected>¥ Select Amount</option>';
-            for(let i=1000; i<=50000; i+=1000){ let o = document.createElement('option'); o.value = i; o.text = `¥${i.toLocaleString()}`; sel.appendChild(o); }
-        }
-        function addFundFromInput(){ 
-            haptic(15); const v = parseInt(document.getElementById('fund-input-amount').value); 
-            if(v){ 
-                fundHistory.unshift({ id: Date.now(), amount: v, time: getCurrentDateAndTimeString() });
-                currentFund += v; updatePreParkFundDisplay(); saveData(); document.getElementById('fund-input-amount').value=''; 
-            } 
-        }
-        function openFundHistoryModal() {
-            haptic(10); const content = document.getElementById('modal-content'); document.getElementById('modal-title').innerText = "FUND HISTORY";
-            let listHtml = fundHistory.map(f => `
-                <div class="flex justify-between items-center p-3 border-b border-slate-800">
-                    <div class="flex flex-col"><span class="text-[9px] text-cyan-600 tomorrow-font">${f.time}</span><span class="text-yellow-400 font-bold text-sm">¥${f.amount.toLocaleString()}</span></div>
-                    <button onclick="deleteFundLog(${f.id})" class="w-6 h-6 rounded bg-red-950/30 text-red-500 text-xs flex items-center justify-center">×</button>
-                </div>
-            `).join('');
-            content.innerHTML = `<div class="space-y-1 mb-4 max-h-[50vh] overflow-y-auto w-full">${listHtml || '<p class="text-center py-10 text-[9px] text-slate-600 tomorrow-font uppercase">No history</p>'}</div>`;
-            document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex');
-        }
-        function deleteFundLog(id) {
-            haptic(20); if(confirm("DELETE THIS FUND LOG?")) {
-                const idx = fundHistory.findIndex(f => f.id === id);
-                if(idx !== -1) { currentFund = Math.max(0, currentFund - fundHistory[idx].amount); fundHistory.splice(idx, 1); updatePreParkFundDisplay(); saveData(); openFundHistoryModal(); }
+        async function fetchWeather() {
+            const target = new Date(targetDateStr); const diff = Math.ceil((target - new Date()) / 86400000);
+            if(diff >= 0 && diff <= 15) {
+                const dateStr = target.toISOString().split('T')[0];
+                try {
+                    const rH = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.7687&longitude=140.7288&daily=temperature_2m_max&start_date=${dateStr}&end_date=${dateStr}&timezone=Asia%2FTokyo`); const dH = await rH.json();
+                    const rN = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.6329&longitude=139.8804&daily=temperature_2m_max&start_date=${dateStr}&end_date=${dateStr}&timezone=Asia%2FTokyo`); const dN = await rN.json();
+                    if(dH.daily && dN.daily) { document.getElementById('temp-hkd').value = dH.daily.temperature_2m_max[0]; document.getElementById('temp-nrt').value = dN.daily.temperature_2m_max[0]; updateClimate(); const badge = document.getElementById('weather-badge'); badge.innerText = 'API SYNCED'; badge.className = 'text-[8px] bg-cyan-900/50 text-cyan-300 border border-cyan-500 px-1 rounded tomorrow-font tracking-widest'; }
+                } catch(e) {}
             }
         }
+        function updateClimate() { const h = parseFloat(document.getElementById('temp-hkd').value)||0, n = parseFloat(document.getElementById('temp-nrt').value)||0, diff = n - h; const el = document.getElementById('temp-diff'); el.innerText = `ΔT ${diff>0?'+':''}${diff.toFixed(1)}`; el.className = `text-sm font-bold tomorrow-font px-2 py-1 rounded ${diff>=10 ? 'text-red-400 bg-red-900/50' : (diff>=5 ? 'text-orange-400 bg-orange-900/50' : 'text-cyan-400 bg-cyan-900/50')}`; }
+
+        function initConditions() { renderConditions(); }
+        function renderConditions() { const list = document.getElementById('condition-list'); list.innerHTML = conditionItems.map((c, i) => `<label class="flex items-center gap-3 bg-slate-900/50 p-2.5 rounded-lg border border-slate-800"><input type="checkbox" onchange="toggleCondition(${i})" ${c.checked ? 'checked' : ''}><span class="text-xs text-cyan-50 ${c.checked ? 'opacity-50 line-through' : ''}">${c.text}</span></label>`).join(''); const checked = conditionItems.filter(c => c.checked).length; const percent = conditionItems.length ? Math.round((checked / conditionItems.length) * 100) : 0; document.getElementById('readiness-percent').innerText = `${percent}%`; document.getElementById('readiness-bar').style.width = `${percent}%`; document.getElementById('readiness-bar').className = `h-full transition-all duration-500 ${percent === 100 ? 'bg-cyan-400 shadow-[0_0_10px_#00f2ff]' : 'bg-green-500'}`; }
+        function toggleCondition(i) { conditionItems[i].checked = !conditionItems[i].checked; saveData(); renderConditions(); }
+        function openConditionSettingsModal() { haptic(10); const c = document.getElementById('modal-content'); document.getElementById('modal-title').innerText = "CONDITION SETTINGS"; let html = `<div id="c-edit-list" class="space-y-2 mb-4">` + conditionItems.map((item, i) => `<div class="flex gap-2"><input type="text" value="${item.text}" onchange="conditionItems[${i}].text=this.value" class="flex-1 bg-slate-900 border p-2 rounded text-xs text-white"><button onclick="conditionItems.splice(${i},1); openConditionSettingsModal();" class="text-red-500 font-bold px-2">×</button></div>`).join('') + `</div><button onclick="conditionItems.push({id:Date.now(), text:'New Condition', checked:false}); openConditionSettingsModal();" class="text-xs text-cyan-400 mb-4">+ Add Item</button><button onclick="saveData(); renderConditions(); closeModal();" class="w-full bg-green-500 text-black font-bold py-3 rounded-xl uppercase">Save Settings</button>`; c.innerHTML = html; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
+
+        function initLoadout(){ document.getElementById('loadout-status').innerText = `0g / ${loadoutLimit}g`; renderLoadout(); }
+        function addLoadout(){ haptic(10); const n=document.getElementById('loadout-name').value||'Gear', w=parseInt(document.getElementById('loadout-weight').value)||0; if(w>0){ loadoutItems.push({id:Date.now(), name:n, weight:w}); document.getElementById('loadout-name').value=''; document.getElementById('loadout-weight').value=''; saveData(); renderLoadout(); } }
+        function deleteLoadout(id){ loadoutItems = loadoutItems.filter(i=>i.id!==id); saveData(); renderLoadout(); }
+        function renderLoadout(){ const list = document.getElementById('loadout-list'); let total = 0; list.innerHTML = loadoutItems.map(item => { total += item.weight; return `<div class="flex justify-between items-center bg-slate-900/50 p-2 rounded-lg border border-slate-800"><span class="text-xs text-cyan-50 truncate">${item.name}</span><div class="flex items-center gap-2"><span class="tomorrow-font text-[10px] text-indigo-300">${item.weight}g</span><button onclick="deleteLoadout(${item.id})" class="text-slate-500 hover:text-red-400 text-xs px-1">×</button></div></div>`; }).join(''); document.getElementById('loadout-status').innerText = `${total}g / ${loadoutLimit}g`; const r = Math.min(total / loadoutLimit * 100, 100); document.getElementById('loadout-bar').style.width = `${r}%`; document.getElementById('loadout-bar').className = `h-full transition-all duration-500 ${r >= 100 ? 'bg-red-500' : 'bg-indigo-500'}`; }
+        function openLoadoutSettingsModal(){ haptic(10); document.getElementById('modal-title').innerText = "LOADOUT SETTINGS"; document.getElementById('modal-content').innerHTML = `<div class="mb-4"><label class="text-[10px] text-cyan-400">Total Weight Limit (g)</label><input id="l-limit" type="number" value="${loadoutLimit}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white mt-1"></div><button onclick="loadoutLimit=parseInt(document.getElementById('l-limit').value)||2000; saveData(); renderLoadout(); closeModal();" class="w-full bg-indigo-500 text-black font-bold py-3 rounded-xl uppercase">Save Limit</button>`; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
+
+        function initTacticalSelect() { const sel = document.getElementById('tactical-select'); let html = '<option value="" disabled selected>Select Target</option>'; html += '<optgroup label="DPA (TDL)">' + masterData.filter(d=>d.park==='TDL' && d.passType==='dpa').map(d=>`<option value="${d.name}|${d.price}">${d.name} (¥${d.price})</option>`).join('') + '</optgroup>'; html += '<optgroup label="DPA (TDS)">' + masterData.filter(d=>d.park==='TDS' && d.passType==='dpa').map(d=>`<option value="${d.name}|${d.price}">${d.name} (¥${d.price})</option>`).join('') + '</optgroup>'; html += '<optgroup label="Mobile Order & Others"><option value="モバイルオーダー (TDL)|0">TDL モバイルオーダー</option><option value="モバイルオーダー (TDS)|0">TDS モバイルオーダー</option><option value="ロッカー確保|0">ロッカー確保</option><option value="写真撮影|0">写真撮影</option></optgroup>'; sel.innerHTML = html; renderTactical(); }
+        function addTactical() { haptic(10); const val = document.getElementById('tactical-select').value; if(!val) return; const memo = document.getElementById('tactical-memo').value; const [task, price] = val.split('|'); tacticalItems.push({ id: Date.now(), task, price: parseInt(price)||0, memo }); document.getElementById('tactical-select').selectedIndex = 0; document.getElementById('tactical-memo').value = ''; saveData(); renderTactical(); }
+        function deleteTactical(id) { tacticalItems = tacticalItems.filter(i => i.id !== id); saveData(); renderTactical(); }
+        function renderTactical() { const list = document.getElementById('tactical-list'); let total = 0; list.innerHTML = tacticalItems.map((item, index) => { total += item.price; const memoHtml = item.memo ? `<div class="mt-1 pl-2 border-l-2 border-red-900/50 text-[10px] text-red-200 whitespace-pre-wrap">${item.memo}</div>` : ''; return `<div class="bg-slate-900/50 p-2 rounded-lg border border-slate-800 cursor-move mb-1.5"><div class="flex justify-between items-center"><div class="flex gap-2 items-center min-w-0"><span class="text-[8px] text-slate-500 tomorrow-font border border-slate-700 rounded px-1 shrink-0">${index+1}</span><span class="text-xs text-cyan-50 truncate">${item.task}</span></div><div class="flex items-center gap-2 shrink-0"><span class="tomorrow-font text-[10px] text-red-300">${item.price>0 ? '¥'+item.price : 'Free'}</span><button onclick="deleteTactical(${item.id})" class="text-slate-500 hover:text-red-400 text-xs px-1">×</button></div></div>${memoHtml}</div>`; }).join(''); document.getElementById('tactical-total').innerText = `Total Cost: ¥${total.toLocaleString()}`; new Sortable(list, { animation: 150, onEnd: function (evt) { const m = tacticalItems.splice(evt.oldIndex, 1)[0]; tacticalItems.splice(evt.newIndex, 0, m); saveData(); renderTactical(); }}); }
+
+        function initFundSelect(){ const sel = document.getElementById('fund-input-amount'); sel.innerHTML = '<option value="" disabled selected>¥ Select / Enter Amount</option>'; for(let i=1000; i<=50000; i+=1000){ let o = document.createElement('option'); o.value = i; o.text = `¥${i.toLocaleString()}`; sel.appendChild(o); } }
+        function addFundFromInput(){ haptic(15); const v = parseInt(document.getElementById('fund-input-amount').value); if(v){ fundHistory.unshift({ id: Date.now(), amount: v, time: getCurrentDateAndTimeString() }); currentFund += v; updatePreParkFundDisplay(); saveData(); document.getElementById('fund-input-amount').value=''; } }
+        function openFundHistoryModal() { haptic(10); const content = document.getElementById('modal-content'); document.getElementById('modal-title').innerText = "FUND HISTORY"; let listHtml = fundHistory.map(f => `<div class="flex justify-between items-center p-3 border-b border-slate-800"><div><span class="text-[9px] text-cyan-600 tomorrow-font">${f.time}</span><span class="text-yellow-400 font-bold ml-2">¥${f.amount.toLocaleString()}</span></div><button onclick="deleteFundLog(${f.id})" class="text-red-500 font-bold text-lg px-2">×</button></div>`).join(''); content.innerHTML = `<div class="max-h-[50vh] overflow-y-auto mb-4 w-full">${listHtml || '<p class="text-center py-10 text-[9px] text-slate-600 tomorrow-font uppercase">No history</p>'}</div>`; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
+        function deleteFundLog(id) { haptic(20); const idx = fundHistory.findIndex(f => f.id === id); if(idx !== -1) { currentFund = Math.max(0, currentFund - fundHistory[idx].amount); fundHistory.splice(idx, 1); updatePreParkFundDisplay(); saveData(); openFundHistoryModal(); } }
         function updatePreParkFundDisplay(){ document.getElementById('fund-current').innerText = `¥${currentFund.toLocaleString()}`; document.getElementById('fund-target').innerText = `/ ¥${targetFund.toLocaleString()}`; const r = targetFund > 0 ? Math.min(currentFund / targetFund * 100, 100) : 0; document.getElementById('fund-progress-bar').style.width = `${r}%`; }
         function updateCostDisplay(){ const r = budget > 0 ? totalCost / budget : 0; document.getElementById('cost-display-value').innerText = `¥${totalCost.toLocaleString()}`; document.getElementById('budget-label').innerText = `BUDGET: ¥${budget.toLocaleString()}`; const bar = document.getElementById('budget-progress'); bar.style.width = `${Math.min(r * 100, 100)}%`; bar.className = `absolute left-0 top-0 bottom-0 w-full transition-all duration-500 ${r >= 1 ? 'bg-red-600/50' : (r >= 0.8 ? 'bg-yellow-500/40' : 'bg-cyan-500/40')}`; }
         function addCost(name, amount, time){ costHistory.push({name, amount, time}); totalCost += amount; updateCostDisplay(); saveData(); }
 
-        const getCurrentDateAndTimeString = () => { const d = new Date(); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
         function postTweet(){ const i = document.getElementById('tweet-input'); if(!i.value) return; preParkTweets.unshift({ id: Date.now(), text: i.value, time: getCurrentDateAndTimeString() }); i.value=''; saveData(); renderTweets(); }
         function deleteTweet(i){ haptic(10); if(confirm("Delete?")){ preParkTweets.splice(i,1); saveData(); renderTweets(); } }
         function renderTweets(){ document.getElementById('tweet-list').innerHTML = preParkTweets.map((t,i) => `<div class="glass-panel p-3.5 rounded-xl border border-slate-800 relative w-full"><button onclick="deleteTweet(${i})" class="absolute top-2 right-2 text-slate-500 w-6 h-6 flex items-center justify-center">×</button><p class="text-[9px] text-cyan-600 tomorrow-font mb-1.5 font-bold tracking-widest">${t.time}</p><p class="text-sm text-cyan-50 whitespace-pre-wrap break-words">${t.text}</p></div>`).join('') || '<div class="text-center py-6"><p class="text-[9px] text-slate-600 tomorrow-font italic uppercase">No prep logs yet</p></div>'; }
-
         function updateCountdown(){ const diff = new Date(targetDateStr) - new Date(); if(diff <= 0){ document.getElementById('countdown-display').innerHTML = `<span class="text-yellow-400 animate-pulse uppercase">MISSION READY</span>`; return; } document.getElementById('countdown-display').innerHTML = `${Math.floor(diff/86400000)} DAYS<br><span class="text-xl">${String(Math.floor((diff%86400000)/3600000)).padStart(2,'0')}:${String(Math.floor((diff%3600000)/60000)).padStart(2,'0')}:${String(Math.floor((diff%60000)/1000)).padStart(2,'0')}</span>`; document.getElementById('target-date-display').innerText = `TARGET: ${targetDateStr.replace('T', ' ')}`; }
 
         // ==========================================
         // 8. ユーティリティ・モーダル・出力
         // ==========================================
         function switchPark(p){ haptic(10); currentPark = p; document.getElementById('btn-TDL').className = `flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-widest ${p==='TDL'?'bg-cyan-500 text-black':'text-slate-400'}`; document.getElementById('btn-TDS').className = `flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-widest ${p==='TDS'?'bg-cyan-500 text-black':'text-slate-400'}`; document.getElementById('current-park-display').innerText = `Sector: ${p}`; }
-        function closeModal(){ document.getElementById('modal-overlay').classList.add('hidden'); }
+        function closeModal(){ document.getElementById('modal-overlay').classList.add('hidden'); document.getElementById('modal-overlay').classList.remove('flex'); }
         function resetAllLogs(){ haptic(20); if(confirm("RESET ALL LOGS AND COSTS?")){ history=[]; costHistory=[]; totalCost=0; dailyMemo=""; currentRecord=null; if(timerId) clearInterval(timerId); dpaCooldownTime=null; ppCooldownTime=null; saveData(); location.reload(); } }
 
         function openStatusMenu(){ haptic(10); const content=document.getElementById('modal-content'); document.getElementById('modal-title').innerText="PHYSICAL STATUS"; content.innerHTML=`<div class="flex flex-col gap-3 w-full"><button onclick="recStatus('🟢 余裕 (Great)')" class="w-full bg-slate-900 border border-green-500/50 p-4 rounded-xl text-green-400 font-bold flex justify-center items-center gap-2"><span class="text-xl">🟢</span> Great</button><button onclick="recStatus('🟡 普通 (Okay)')" class="w-full bg-slate-900 border border-yellow-500/50 p-4 rounded-xl text-yellow-400 font-bold flex justify-center items-center gap-2"><span class="text-xl">🟡</span> Okay</button><button onclick="recStatus('🔴 限界 (Exhausted)')" class="w-full bg-slate-900 border border-red-500/50 p-4 rounded-xl text-red-400 font-bold flex justify-center items-center gap-2"><span class="text-xl">🔴</span> Exhausted</button></div>`; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
@@ -624,16 +439,17 @@
         function openDailyMemoModal(){ haptic(10); document.getElementById('modal-title').innerText="MISSION NOTES"; document.getElementById('modal-content').innerHTML=`<textarea id="memo-edit" rows="8" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-cyan-100 outline-none">${dailyMemo}</textarea><button onclick="dailyMemo=document.getElementById('memo-edit').value;document.getElementById('daily-memo-display').innerText=dailyMemo||'Tap to add notes...';saveData();closeModal();" class="w-full bg-cyan-500 text-black font-bold py-4 rounded-xl mt-4 uppercase tracking-widest">Save Notes</button>`; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
         function openEditTimeModal(i){ const l=history[i]; document.getElementById('modal-title').innerText="EDIT LOG"; let h=`<div class="space-y-4 w-full"><div><label class="text-[10px] text-cyan-400 uppercase">Start Time</label><input id="e-st" type="time" value="${l.start}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white"></div>`; if(l.status==='finished'||l.status==='active') h+=`<div><label class="text-[10px] text-cyan-400 uppercase">End Time</label><input id="e-ed" type="time" value="${l.end==='---'?'':l.end}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white"></div>`; if(l.duration.includes('¥')||l.type==='shop'||l.type==='food'||l.status==='cost') h+=`<div><label class="text-[10px] text-cyan-400 uppercase">Cost (¥)</label><input id="e-ct" type="number" value="${l.duration.includes('¥')?l.duration.split('¥')[1].replace(/[^0-9]/g,''):''}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white"></div>`; h+=`<button onclick="saveEdits(${i})" class="w-full bg-cyan-500 text-black font-bold py-4 rounded-xl uppercase tracking-widest">Save Changes</button></div>`; document.getElementById('modal-content').innerHTML=h; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
         function saveEdits(i){ const l=history[i], ns=document.getElementById('e-st').value; if(ns) l.start=ns; if(l.status==='finished'){ const ne=document.getElementById('e-ed').value; if(ne) l.end=ne; if(l.start&&l.end&&l.start!=='---'&&l.end!=='---'){ const sD=new Date(),eD=new Date(); sD.setHours(...l.start.split(':'),0); eD.setHours(...l.end.split(':'),0); if(eD<sD) eD.setDate(eD.getDate()+1); const diff=(eD-sD)/1000; l.duration=`${Math.floor(diff/60)}m ${diff%60}s`+(l.duration.includes(' / ¥')?' / ¥'+l.duration.split(' / ¥')[1]:''); } } const cI=document.getElementById('e-ct'); if(cI){ const nc=parseInt(cI.value)||0; let oc=0; if(l.duration.includes('¥')) oc=parseInt(l.duration.split('¥')[1].replace(/[^0-9]/g,''))||0; if(oc!==nc){ const nm=l.name.replace('購入: ',''); if(oc>0){ const idx=costHistory.findIndex(c=>c.time===l.start&&c.amount===oc); if(idx>-1){ costHistory.splice(idx,1); totalCost-=oc; } } if(nc>0){ costHistory.push({name:nm,amount:nc,time:ns||l.start}); totalCost+=nc; } if(l.status==='cost') l.duration=nc>0?`¥${nc}`:''; else l.duration=nc>0?`${l.duration.split(' / ¥')[0]} / ¥${nc}`:l.duration.split(' / ¥')[0]; } } updateCostDisplay(); saveData(); renderTimeline(false); closeModal(); }
-        function openPreParkSettings(){ haptic(10); document.getElementById('modal-title').innerText="MISSION SETTINGS"; document.getElementById('modal-content').innerHTML=`<div class="space-y-4 w-full"><div><label class="text-[10px] text-cyan-400">TARGET DATE & TIME</label><input id="s-date" type="datetime-local" value="${targetDateStr}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white mt-1"></div><div><label class="text-[10px] text-cyan-400">TARGET FUND (¥)</label><input id="s-fund" type="number" value="${targetFund}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white mt-1"></div><button onclick="targetDateStr=document.getElementById('s-date').value;targetFund=parseInt(document.getElementById('s-fund').value)||0;saveData();updateCountdown();updatePreParkFundDisplay();closeModal();" class="w-full bg-cyan-500 text-black font-bold py-4 rounded-xl mt-4 uppercase tracking-widest">Save Changes</button></div>`; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
+        function openPreParkSettings(){ haptic(10); document.getElementById('modal-title').innerText="MISSION SETTINGS"; document.getElementById('modal-content').innerHTML=`<div class="space-y-4 w-full"><div><label class="text-[10px] text-cyan-400">TARGET DATE & TIME</label><input id="s-date" type="datetime-local" value="${targetDateStr}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white mt-1"></div><div><label class="text-[10px] text-cyan-400">TARGET FUND (¥)</label><input id="s-fund" type="number" value="${targetFund}" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white mt-1"></div><button onclick="targetDateStr=document.getElementById('s-date').value;targetFund=parseInt(document.getElementById('s-fund').value)||0;saveData();updateCountdown();updatePreParkFundDisplay();fetchWeather();closeModal();" class="w-full bg-cyan-500 text-black font-bold py-4 rounded-xl mt-4 uppercase tracking-widest">Save Changes</button></div>`; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
         function openCalculator(){ haptic(10); document.getElementById('modal-title').innerText="COST ADD"; document.getElementById('modal-content').innerHTML=`<div class="space-y-4 w-full"><input id="c-name" type="text" placeholder="Item Name" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white"><input id="c-price" type="number" placeholder="Cost (¥)" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white"><button onclick="const n=document.getElementById('c-name').value||'Others',p=parseInt(document.getElementById('c-price').value);if(p>0){const t=getCurrentTime();addCost(n,p,t);addTimelineHistory('購入: '+n,t,t,'¥'+p,'cost');closeModal();}" class="w-full bg-yellow-500 text-black font-bold py-4 rounded-xl uppercase tracking-widest">Add Expense</button></div>`; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
         
+        // Expense Breakdown
         function openCostHistory(){ 
             haptic(10); document.getElementById('modal-title').innerText="EXPENSE BREAKDOWN"; 
             document.getElementById('modal-content').innerHTML=`<div class="mb-4 bg-slate-900 p-3 rounded-xl border border-slate-700 w-full"><label class="text-[9px] text-cyan-400 uppercase">Set Budget Limit (¥)</label><div class="flex gap-2 w-full"><input id="b-input" type="number" value="${budget}" class="flex-[3] bg-slate-800 border border-slate-600 p-2 rounded-lg text-white min-w-0"><button onclick="budget=parseInt(document.getElementById('b-input').value)||0;saveData();updateCostDisplay();closeModal();" class="flex-1 bg-cyan-700 px-2 rounded-lg text-[10px] text-cyan-100 font-bold min-w-[50px] uppercase">Set</button></div></div><div class="space-y-1 mb-4 max-h-[35vh] overflow-y-auto w-full">${costHistory.map(c=>`<div class="flex justify-between p-3 border-b border-slate-800 text-xs"><span>${c.time} | ${c.name}</span><span class="text-yellow-400 font-bold">¥${c.amount.toLocaleString()}</span></div>`).join('')||'<p class="text-center py-10 text-[9px] text-slate-600 tomorrow-font uppercase">No expenses</p>'}</div><button onclick="copyCostLog()" class="w-full bg-cyan-500 text-black py-3 rounded-xl font-bold text-[10px] uppercase">Copy Cost List</button>`; 
             document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); 
         }
         
-        // タイムライン一覧表示機能
+        // Full Timeline
         function openFullTimeline(){
             haptic(10); const content=document.getElementById('modal-content'); document.getElementById('modal-title').innerText="FULL TIMELINE";
             const html = history.map(h=>{
@@ -646,43 +462,35 @@
             document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex');
         }
 
-        // Data Export
+        // Data Export Modal
         function openDataModal(){ haptic(10); document.getElementById('modal-title').innerText="DATA MANAGEMENT"; document.getElementById('modal-content').innerHTML=`<div class="space-y-6 w-full"><div><h3 class="text-[10px] text-cyan-400 font-bold mb-2">TEXT EXPORT (PARK LOGS)</h3><button onclick="copyTextLog()" class="w-full bg-cyan-900 text-cyan-100 py-3 rounded-xl text-[10px] tomorrow-font border border-cyan-500 font-bold mb-2 uppercase">Copy Text Log</button><button onclick="copyMarkdownLog()" class="w-full bg-indigo-900 text-indigo-100 py-3 rounded-xl text-[10px] tomorrow-font border border-indigo-500 font-bold uppercase">Copy Markdown (Blog)</button></div><div class="border-t border-slate-700 pt-4"><h3 class="text-[10px] text-cyan-400 font-bold mb-2">TEXT EXPORT (PRE-PARK)</h3><button onclick="copyPreParkLog()" class="w-full bg-cyan-800 text-cyan-100 py-3 rounded-xl text-[10px] tomorrow-font border border-cyan-500 font-bold uppercase">Copy Prep Log</button></div><div class="border-t border-slate-700 pt-4"><h3 class="text-[10px] text-cyan-400 font-bold mb-2">SYSTEM BACKUP (JSON)</h3><textarea id="json-data-area" rows="4" class="w-full bg-slate-900 border border-slate-700 p-2 rounded-xl text-[9px] font-mono text-cyan-100 mb-2"></textarea><div class="flex gap-2"><button onclick="generateJson()" class="flex-1 bg-slate-700 text-white py-3 rounded-xl text-[10px] font-bold">EXPORT</button><button onclick="importJson()" class="flex-1 bg-red-900/80 border border-red-500 text-white py-3 rounded-xl text-[10px] font-bold">IMPORT</button></div></div></div>`; document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('modal-overlay').classList.add('flex'); }
         async function copyCostLog(){ await navigator.clipboard.writeText(costHistory.map(c=>`${c.time} | ${c.name} : ¥${c.amount}`).join('\n')+`\nTOTAL: ¥${totalCost}`); alert("Copied!"); }
         async function copyTextLog(){ let t=`=== MISSION NOTES ===\n${dailyMemo||'None'}\n\n`+history.map(h=>`${h.start}${h.status!=='cost'?'〜'+h.end:''} | ${h.name} (${h.duration})${h.memo?'\n └ '+h.memo:''}`).join('\n')+`\n\n--- COST ---\n`+costHistory.map(c=>`${c.time} | ${c.name} : ¥${c.amount}`).join('\n')+`\nTOTAL: ¥${totalCost}`; await navigator.clipboard.writeText(t); alert("Copied!"); }
         async function copyMarkdownLog(){ let md=`# EXTREME Disney Log\n\n## Mission Notes\n${dailyMemo||'None'}\n\n`+history.map(h=>`## ${h.start}${h.status!=='cost'?'〜'+h.end:''} ${h.name}\n\n* **記録**: ${h.duration}\n\n[画像挿入位置]\n\n${h.memo||''}`).join('\n\n---\n\n')+`\n\n---\n\n## Cost Breakdown\n\n`+costHistory.map(c=>`* ${c.time} | **${c.name}**: ¥${c.amount.toLocaleString()}`).join('\n')+`\n\n**TOTAL: ¥${totalCost.toLocaleString()}**`; await navigator.clipboard.writeText(md); alert("Markdown Copied!"); }
         async function copyPreParkLog(){ await navigator.clipboard.writeText(`=== PREP LOG ===\n`+(preParkTweets.length===0?"No logs.":[...preParkTweets].reverse().map(t=>`${t.time} | ${t.text}`).join('\n'))); alert("Prep Log Copied!"); }
-        function generateJson(){ const j=JSON.stringify({history,costHistory,totalCost,budget,dailyMemo,isInPark,targetDateStr,targetFund,currentFund,fundHistory,preParkTweets,dpaCooldownTime:dpaCooldownTime?dpaCooldownTime.getTime():null,ppCooldownTime:ppCooldownTime?ppCooldownTime.getTime():null}); document.getElementById('json-data-area').value=j; navigator.clipboard.writeText(j); alert("JSON Copied!"); }
+        function generateJson(){ const j=JSON.stringify({history,costHistory,totalCost,budget,dailyMemo,isInPark,targetDateStr,targetFund,currentFund,fundHistory,preParkTweets,dpaCooldownTime:dpaCooldownTime?dpaCooldownTime.getTime():null,ppCooldownTime:ppCooldownTime?ppCooldownTime.getTime():null,conditionItems,loadoutLimit,loadoutItems,tacticalItems}); document.getElementById('json-data-area').value=j; navigator.clipboard.writeText(j); alert("JSON Copied!"); }
         function importJson(){ try{ const d=JSON.parse(document.getElementById('json-data-area').value); if(confirm("Overwrite?")){ localStorage.setItem('extremeDisneyData',JSON.stringify(d)); location.reload(); } }catch(e){alert("Invalid JSON");} }
 
-        // ==========================================
-        // 9. アプリケーション起動
-        // ==========================================
+        // Start
         window.onload = () => {
-            initFundSelect(); setInterval(() => { updateCountdown(); if(isInPark) updateCooldownDisplay(); }, 1000);
+            initFundSelect(); initTacticalSelect(); setInterval(() => { updateCountdown(); if(isInPark) updateCooldownDisplay(); }, 1000);
             const saved = localStorage.getItem('extremeDisneyData');
             if(saved){
                 const d = JSON.parse(saved); history=d.history||[]; costHistory=d.costHistory||[]; totalCost=d.totalCost||0; budget=d.budget||30000; dailyMemo=d.dailyMemo||""; isInPark=d.isInPark||false; targetDateStr=d.targetDateStr||"2026-06-01T08:00:00"; targetFund=d.targetFund||100000; currentFund=d.currentFund||0; fundHistory=d.fundHistory||[]; preParkTweets=d.preParkTweets||[];
+                if(d.conditionItems) conditionItems=d.conditionItems; if(d.loadoutLimit) loadoutLimit=d.loadoutLimit; if(d.loadoutItems) loadoutItems=d.loadoutItems; if(d.tacticalItems) tacticalItems=d.tacticalItems;
                 if(d.dpaCooldownTime) dpaCooldownTime=new Date(d.dpaCooldownTime); if(d.ppCooldownTime) ppCooldownTime=new Date(d.ppCooldownTime);
                 applyModeUI(); updatePreParkFundDisplay(); renderTweets(); renderTimeline(); updateCostDisplay(); document.getElementById('daily-memo-display').innerText=dailyMemo||'Tap to add notes...';
-                
+                updateClimate(); initConditions(); initLoadout(); renderTactical(); fetchWeather();
                 const active = history.find(h=>h.status==='active');
                 if(active){
                     currentRecord={name:active.name, startTimeObj:new Date(active.startTimeObj), tlRef:active, type:active.type};
                     if(active.duration.includes(' / ¥')) currentRecord.savedCost=parseInt(active.duration.split(' / ¥')[1]);
-                    document.getElementById('active-name').innerText=active.name; 
-                    document.getElementById('recording-overlay').classList.remove('hidden');
-                    document.getElementById('recording-overlay').classList.add('flex');
-                    
+                    document.getElementById('active-name').innerText=active.name; document.getElementById('recording-overlay').classList.remove('hidden'); document.getElementById('recording-overlay').classList.add('flex');
                     const la=document.getElementById('live-cost-input-area');
-                    if(active.type==='shop'||active.type==='food'){
-                        la.classList.remove('hidden'); la.classList.add('flex'); const btn=document.getElementById('live-cost-save-btn'), inp=document.getElementById('live-item-cost');
-                        if(currentRecord.savedCost){ inp.value=currentRecord.savedCost; inp.disabled=true; btn.innerText='SAVED'; btn.disabled=true; btn.className='flex-1 bg-slate-600 text-slate-400 font-bold py-2 px-2 rounded-xl text-sm uppercase min-w-[70px]'; }
-                        else{ inp.value=''; inp.disabled=false; btn.innerText='SAVE'; btn.disabled=false; btn.className='flex-1 bg-yellow-500 text-black font-bold py-2 px-2 rounded-xl text-sm uppercase min-w-[70px]'; }
-                    }
+                    if(active.type==='shop'||active.type==='food'){ la.classList.remove('hidden'); la.classList.add('flex'); const btn=document.getElementById('live-cost-save-btn'), inp=document.getElementById('live-item-cost'); if(currentRecord.savedCost){ inp.value=currentRecord.savedCost; inp.disabled=true; btn.innerText='SAVED'; btn.disabled=true; btn.className='flex-1 bg-slate-600 text-slate-400 font-bold py-2 px-2 rounded-xl text-sm uppercase min-w-[70px]'; } else { inp.value=''; inp.disabled=false; btn.innerText='SAVE'; btn.disabled=false; btn.className='flex-1 bg-yellow-500 text-black font-bold py-2 px-2 rounded-xl text-sm uppercase min-w-[70px]'; } }
                     timerId = setInterval(updateActiveTimer, 1000); updateActiveTimer();
                 }
-            } else { applyModeUI(); updateCostDisplay(); }
+            } else { applyModeUI(); updateCostDisplay(); updateClimate(); initConditions(); initLoadout(); renderTactical(); fetchWeather(); }
         };
     </script>
 </body>
